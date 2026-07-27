@@ -73,7 +73,7 @@ const Register = () => {
       }, 1200);
     } catch (err) {
       const message =
-        err.response?.data?.message || 'Failed to create account. Please try again.';
+        err.response?.data?.message || err.message || 'Failed to create account. Please try again.';
       setApiError(message);
     } finally {
       setLoading(false);

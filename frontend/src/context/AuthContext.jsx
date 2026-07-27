@@ -39,6 +39,8 @@ export const AuthProvider = ({ children }) => {
       setToken(userToken);
       setUser(userData);
       return res.data;
+    } else {
+      throw new Error(res.data?.message || 'Login failed');
     }
   };
 
@@ -51,6 +53,8 @@ export const AuthProvider = ({ children }) => {
       setToken(userToken);
       setUser(userData);
       return res.data;
+    } else {
+      throw new Error(res.data?.message || 'Registration failed');
     }
   };
 

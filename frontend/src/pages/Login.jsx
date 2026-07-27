@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader2, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -61,7 +61,7 @@ const Login = () => {
       }, 1200);
     } catch (err) {
       const message =
-        err.response?.data?.message || 'Invalid email or password. Please try again.';
+        err.response?.data?.message || err.message || 'Invalid email or password. Please try again.';
       setApiError(message);
     } finally {
       setLoading(false);
