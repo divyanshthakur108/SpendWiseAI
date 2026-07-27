@@ -5,10 +5,16 @@ import mongoose from 'mongoose';
  */
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/spendwise_db');
+    const dbUri = process.env.MONGO_URI;
+    if (!dbUri) {
+      console.error('[Database Error] MONGO_URI environment variable is missing!');
+    }
+    const conn = await mongoose.connect(dbUri || 'mongodb://127.0.0.1:27017/spendwise_db', {
+      serverSelectionTimeoutMS: 10000,
+    });
     console.log(`[Database] MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`[Database Error] ${error.message}`);
+    console.error(`[Database Error] Failed to connect: ${error.message}`);
     process.exit(1);
   }
 };
