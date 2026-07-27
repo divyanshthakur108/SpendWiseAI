@@ -12,7 +12,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://spendwise-ai-backend.onrender.com/api/$1"
+      "dest": "https://spendwiseai-4rm0.onrender.com/api/$1"
     },
     {
       "handle": "filesystem"
