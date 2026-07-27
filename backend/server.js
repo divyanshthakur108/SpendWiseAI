@@ -33,7 +33,19 @@ app.use((req, res, next) => {
   next();
 });
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const clientUrl = process.env.CLIENT_URL;
+    if (
+      (clientUrl && (origin === clientUrl || origin === clientUrl.replace(/\/$/, ''))) ||
+      origin.endsWith('.vercel.app') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 

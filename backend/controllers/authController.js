@@ -36,7 +36,8 @@ export const registerUser = async (req, res, next) => {
   try {
     const { errors, isValid } = validateRegisterInput(req.body);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors)[0] || 'Validation failed';
+      return res.status(400).json({ success: false, message: firstError, errors });
     }
 
     const { user, token } = await registerUserService(req.body);
@@ -62,7 +63,8 @@ export const loginUser = async (req, res, next) => {
   try {
     const { errors, isValid } = validateLoginInput(req.body);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors)[0] || 'Validation failed';
+      return res.status(400).json({ success: false, message: firstError, errors });
     }
 
     const { user, token } = await loginUserService(req.body);

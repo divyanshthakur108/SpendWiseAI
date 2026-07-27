@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await api.get('/auth/me');
           if (res.data && res.data.success) {
-            setUser(res.data.data);
+            setUser(res.data.user);
           }
         } catch (error) {
           console.error('Failed to load user session', error);
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     if (res.data && res.data.success) {
-      const { token: userToken, ...userData } = res.data.data;
+      const { token: userToken, user: userData } = res.data;
       localStorage.setItem('token', userToken);
       setToken(userToken);
       setUser(userData);
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     const res = await api.post('/auth/register', { name, email, password });
     if (res.data && res.data.success) {
-      const { token: userToken, ...userData } = res.data.data;
+      const { token: userToken, user: userData } = res.data;
       localStorage.setItem('token', userToken);
       setToken(userToken);
       setUser(userData);
