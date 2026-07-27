@@ -16,7 +16,8 @@ export const createTransaction = async (req, res, next) => {
   try {
     const { errors, isValid } = validateTransactionInput(req.body, false);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors)[0] || 'Validation failed';
+      return res.status(400).json({ success: false, message: firstError, errors });
     }
 
     const transaction = await createTransactionService(req.user._id, req.body);
@@ -77,7 +78,8 @@ export const updateTransaction = async (req, res, next) => {
   try {
     const { errors, isValid } = validateTransactionInput(req.body, true);
     if (!isValid) {
-      return res.status(400).json({ success: false, errors });
+      const firstError = Object.values(errors)[0] || 'Validation failed';
+      return res.status(400).json({ success: false, message: firstError, errors });
     }
 
     const transaction = await updateTransactionService(req.user._id, req.params.id, req.body);

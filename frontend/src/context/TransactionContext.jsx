@@ -78,9 +78,11 @@ export const TransactionProvider = ({ children }) => {
         showToast('Transaction added successfully');
         fetchTransactions();
         return res.data;
+      } else {
+        throw new Error(res?.message || 'Failed to create transaction');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to create transaction';
+      const msg = err.response?.data?.message || err.message || 'Failed to create transaction';
       alert(msg);
       throw err;
     }
@@ -93,9 +95,11 @@ export const TransactionProvider = ({ children }) => {
         showToast('Transaction updated successfully');
         fetchTransactions();
         return res.data;
+      } else {
+        throw new Error(res?.message || 'Failed to update transaction');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to update transaction';
+      const msg = err.response?.data?.message || err.message || 'Failed to update transaction';
       alert(msg);
       throw err;
     }
@@ -107,9 +111,12 @@ export const TransactionProvider = ({ children }) => {
       if (res && res.success) {
         showToast('Transaction deleted');
         fetchTransactions();
+      } else {
+        throw new Error(res?.message || 'Failed to delete transaction');
       }
     } catch (err) {
-      alert('Failed to delete transaction');
+      const msg = err.response?.data?.message || err.message || 'Failed to delete transaction';
+      alert(msg);
       throw err;
     }
   };
