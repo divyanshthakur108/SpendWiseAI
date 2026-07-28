@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -22,6 +23,13 @@ export default {
           success: '#16A34A',
           warning: '#F59E0B',
           error: '#DC2626',
+        },
+        // Custom Olive/Sage Palette requested by user
+        olive: {
+          dark: '#3D4127',
+          primary: '#636B2F',
+          sage: '#BAC095',
+          light: '#D4DE95',
         },
       },
       boxShadow: {

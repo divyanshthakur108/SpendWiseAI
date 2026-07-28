@@ -51,8 +51,8 @@
   }
 
   input, select, textarea {
-    color: var(--text-primary);
-    background-color: var(--bg-surface);
+    color: #000000;
+    background-color: #FFFFFF;
     border-color: var(--border-subtle);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
@@ -64,6 +64,16 @@
   input:focus, select:focus, textarea:focus {
     border-color: var(--accent-primary) !important;
     outline: none;
+  }
+
+  /* Override browser default blue autofill background */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #FFFFFF inset !important;
+    -webkit-text-fill-color: #000000 !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
 
