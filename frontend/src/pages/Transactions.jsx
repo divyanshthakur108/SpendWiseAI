@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  RotateCw,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -78,38 +79,47 @@ const Transactions = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const location = useLocation();
+  const isIncomePage = location.pathname.includes('/income');
+  const isExpensePage = location.pathname.includes('/expenses');
 
   // Filter Bar Toggle
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Sync route path (/income, /expenses, /transactions) with typeFilter
   useEffect(() => {
-    if (location.pathname.includes('/income')) {
+    if (isIncomePage) {
       setTypeFilter('income');
-    } else if (location.pathname.includes('/expenses')) {
+    } else if (isExpensePage) {
       setTypeFilter('expense');
-    } else if (location.pathname.includes('/transactions')) {
+    } else {
       setTypeFilter('');
     }
     setPage(1);
-  }, [location.pathname]);
+  }, [location.pathname, isIncomePage, isExpensePage]);
+
+  const triggerFetch = () => {
+    if (typeof fetchTransactions === 'function') {
+      const queryParams = { page, limit };
+      if (search) queryParams.search = search;
+      if (typeFilter) queryParams.type = typeFilter;
+      if (categoryFilter) queryParams.category = categoryFilter;
+      if (startDate) queryParams.startDate = startDate;
+      if (endDate) queryParams.endDate = endDate;
+      if (minAmount) queryParams.minAmount = minAmount;
+      if (maxAmount) queryParams.maxAmount = maxAmount;
+
+      if (sortBy === 'amount') {
+        queryParams.sort = sortOrder === 'asc' ? 'lowest' : 'highest';
+      } else {
+        queryParams.sort = sortOrder === 'asc' ? 'oldest' : 'newest';
+      }
+
+      fetchTransactions(queryParams);
+    }
+  };
 
   useEffect(() => {
-    if (typeof fetchTransactions === 'function') {
-      fetchTransactions({
-        page,
-        limit,
-        search,
-        type: typeFilter,
-        category: categoryFilter,
-        startDate,
-        endDate,
-        minAmount,
-        maxAmount,
-        sortBy,
-        sortOrder,
-      });
-    }
+    triggerFetch();
   }, [
     fetchTransactions,
     page,
@@ -154,7 +164,7 @@ const Transactions = () => {
         showToast('Transaction updated successfully');
       } else {
         await createTransaction(formData);
-        showToast('Transaction created successfully');
+        showToast('Entry created successfully');
       }
       setModalOpen(false);
       setEditingTx(null);
@@ -182,7 +192,9 @@ const Transactions = () => {
 
   const resetFilters = () => {
     setSearch('');
-    setTypeFilter('');
+    if (!isIncomePage && !isExpensePage) {
+      setTypeFilter('');
+    }
     setCategoryFilter('');
     setStartDate('');
     setEndDate('');
@@ -212,15 +224,24 @@ const Transactions = () => {
   let pageTitle = 'Transactions';
   let pageSubtitle = 'Comprehensive record of all your financial transactions.';
   let HeaderIcon = Receipt;
+  let defaultType = 'expense';
+  let addBtnText = 'Add Transaction';
+  let addBtnClass = 'btn-primary';
 
-  if (location.pathname.includes('/income')) {
+  if (isIncomePage) {
     pageTitle = 'Income Management';
-    pageSubtitle = 'Track and manage all your incoming revenue streams.';
+    pageSubtitle = 'Track, record, and manage all your incoming revenue streams.';
     HeaderIcon = TrendingUp;
-  } else if (location.pathname.includes('/expenses')) {
+    defaultType = 'income';
+    addBtnText = 'Add Income';
+    addBtnClass = 'btn-primary bg-[#16A34A] hover:bg-[#15803D]';
+  } else if (isExpensePage) {
     pageTitle = 'Expense Management';
     pageSubtitle = 'Track, filter, and manage all your expense spending.';
     HeaderIcon = TrendingDown;
+    defaultType = 'expense';
+    addBtnText = 'Add Expense';
+    addBtnClass = 'btn-primary';
   }
 
   const txList = Array.isArray(transactions) ? transactions : [];
@@ -241,14 +262,14 @@ const Transactions = () => {
         title={pageTitle}
         subtitle={pageSubtitle}
         icon={HeaderIcon}
-        badge={`${safePagination.totalTransactions || 0} Entries`}
+        badge={`${safePagination.totalTransactions || 0} ${isIncomePage ? 'Income Entries' : isExpensePage ? 'Expense Entries' : 'Entries'}`}
         action={
           <button
             onClick={handleOpenAddModal}
-            className="btn-primary"
+            className={addBtnClass}
           >
             <Plus className="w-4 h-4" />
-            <span>Add Transaction</span>
+            <span>{addBtnText}</span>
           </button>
         }
       />
@@ -268,25 +289,27 @@ const Transactions = () => {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search transactions by description..."
+              placeholder={isIncomePage ? "Search income by description..." : isExpensePage ? "Search expenses by description..." : "Search transactions by description..."}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]"
             />
           </div>
 
           {/* Quick Filters & Sorting */}
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
-            <select
-              value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value);
-                setPage(1);
-              }}
-              className="px-3 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none appearance-none font-medium"
-            >
-              <option value="">All Types</option>
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-            </select>
+            {!isIncomePage && !isExpensePage && (
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="px-3 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none appearance-none font-medium"
+              >
+                <option value="">All Types</option>
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            )}
 
             <select
               value={categoryFilter}
@@ -323,7 +346,7 @@ const Transactions = () => {
               <span>Filters</span>
             </button>
 
-            {(search || typeFilter || categoryFilter || startDate || endDate || minAmount || maxAmount) && (
+            {(search || (typeFilter && !isIncomePage && !isExpensePage) || categoryFilter || startDate || endDate || minAmount || maxAmount) && (
               <button
                 onClick={resetFilters}
                 className="px-3 py-2.5 text-xs font-semibold text-[#DC2626] hover:text-[#991B1B] flex items-center space-x-1"
@@ -404,6 +427,13 @@ const Transactions = () => {
           <div className="p-12 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-[#DC2626] mx-auto" />
             <p className="text-xs text-[#DC2626] font-semibold">{error}</p>
+            <button
+              onClick={triggerFetch}
+              className="btn-secondary text-xs"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span>Retry Request</span>
+            </button>
           </div>
         ) : txList.length === 0 ? (
           <div className="p-16 text-center space-y-4">
@@ -411,16 +441,18 @@ const Transactions = () => {
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-[#0F172A]">No transactions found</h3>
+              <h3 className="text-sm font-semibold text-[#0F172A]">
+                No {isIncomePage ? 'income' : isExpensePage ? 'expense' : ''} entries found
+              </h3>
               <p className="text-xs text-[#64748B]">
-                Try adjusting your search criteria or add a new transaction.
+                Try adjusting your search criteria or create a new entry.
               </p>
             </div>
             <button
               onClick={handleOpenAddModal}
-              className="btn-primary"
+              className={addBtnClass}
             >
-              Add First Transaction
+              {addBtnText}
             </button>
           </div>
         ) : (
@@ -478,14 +510,14 @@ const Transactions = () => {
                         <button
                           onClick={() => handleOpenEditModal(tx)}
                           className="p-1.5 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
-                          title="Edit Transaction"
+                          title="Edit Entry"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenDeleteModal(tx)}
                           className="p-1.5 rounded-lg text-[#64748B] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors"
-                          title="Delete Transaction"
+                          title="Delete Entry"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -509,7 +541,7 @@ const Transactions = () => {
                   setLimit(Number(e.target.value));
                   setPage(1);
                 }}
-                className="px-2 py-1 bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] text-xs focus:outline-none"
+                className="px-2 py-1 bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] text-xs focus:outline-none font-medium"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
@@ -554,6 +586,7 @@ const Transactions = () => {
         }}
         onSubmit={handleModalSubmit}
         initialData={editingTx}
+        defaultType={defaultType}
         loading={submitLoading}
       />
 
@@ -562,7 +595,7 @@ const Transactions = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
         loading={deleteLoading}
-        itemTitle={`Transaction: ${deletingTxDesc}`}
+        itemTitle={`Entry: ${deletingTxDesc}`}
       />
     </DashboardLayout>
   );

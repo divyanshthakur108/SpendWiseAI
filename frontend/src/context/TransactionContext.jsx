@@ -42,34 +42,46 @@ export const TransactionProvider = ({ children }) => {
     setLoading(true);
     setError('');
     try {
-      let params = {};
+      let rawParams = {};
       if (customParams && typeof customParams === 'object') {
-        params = { ...customParams };
+        rawParams = { ...customParams };
       } else {
-        params = {
+        rawParams = {
           page,
           limit,
           sort: sortOption,
         };
-        if (search) params.search = search;
-        if (typeFilter) params.type = typeFilter;
-        if (categoryFilter) params.category = categoryFilter;
-        if (startDate) params.startDate = startDate;
-        if (endDate) params.endDate = endDate;
-        if (minAmount) params.minAmount = minAmount;
-        if (maxAmount) params.maxAmount = maxAmount;
+        if (search) rawParams.search = search;
+        if (typeFilter) rawParams.type = typeFilter;
+        if (categoryFilter) rawParams.category = categoryFilter;
+        if (startDate) rawParams.startDate = startDate;
+        if (endDate) rawParams.endDate = endDate;
+        if (minAmount) rawParams.minAmount = minAmount;
+        if (maxAmount) rawParams.maxAmount = maxAmount;
       }
 
-      const res = await getTransactionsAPI(params);
+      // Filter out empty strings, null, and undefined values from query params
+      const cleanParams = {};
+      Object.keys(rawParams).forEach((key) => {
+        const val = rawParams[key];
+        if (val !== '' && val !== null && val !== undefined) {
+          cleanParams[key] = val;
+        }
+      });
+
+      const res = await getTransactionsAPI(cleanParams);
       if (res && res.success) {
         setTransactions(res.data || []);
         if (res.pagination) {
           setPagination(res.pagination);
         }
+      } else {
+        setError(res?.message || 'Failed to fetch transactions');
       }
     } catch (err) {
       console.error('Error fetching transactions:', err);
-      setError(err.response?.data?.message || 'Failed to fetch transactions');
+      const errMsg = err.response?.data?.message || err.message || 'Failed to fetch transactions';
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
