@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, DollarSign, Calendar, Tag, CreditCard, AlignLeft, FileText } from 'lucide-react';
+import { X, Loader2, DollarSign, Calendar, Tag, CreditCard, AlignLeft } from 'lucide-react';
 import ReceiptUploader from './ReceiptUploader';
 
 const CATEGORIES = [
@@ -117,15 +117,15 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-lg bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_16px_32px_rgba(15,23,42,0.12)] overflow-hidden z-10 animate-fade-in max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-lg bg-white border border-[#E2E8F0] rounded-2xl shadow-md overflow-hidden z-10 animate-fade-in max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between shrink-0">
-          <h3 className="text-base font-bold text-[#0F172A]">
+          <h3 className="text-base font-semibold text-[#0F172A]">
             {isEditing ? 'Edit Transaction' : 'Add New Transaction'}
           </h3>
           <button
@@ -143,9 +143,9 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
             <button
               type="button"
               onClick={() => setFormData((prev) => ({ ...prev, type: 'expense' }))}
-              className={`py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`py-2 rounded-lg text-xs font-semibold transition-all ${
                 formData.type === 'expense'
-                  ? 'bg-[#FEF2F2] text-[#EF4444] border border-[#FECACA] shadow-xs'
+                  ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA] shadow-xs'
                   : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
@@ -154,9 +154,9 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
             <button
               type="button"
               onClick={() => setFormData((prev) => ({ ...prev, type: 'income' }))}
-              className={`py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`py-2 rounded-lg text-xs font-semibold transition-all ${
                 formData.type === 'income'
-                  ? 'bg-[#F0FDF4] text-[#22C55E] border border-[#BBF7D0] shadow-xs'
+                  ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0] shadow-xs'
                   : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
@@ -166,7 +166,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
               Description / Title
             </label>
             <div className="relative">
@@ -180,19 +180,19 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
                 onChange={handleChange}
                 placeholder="e.g. Grocery Store, Freelance Retainer"
                 className={`w-full pl-10 pr-4 py-2.5 bg-white border ${
-                  errors.description ? 'border-[#EF4444]' : 'border-[#CBD5E1] focus:border-[#DC2626]'
-                } rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20`}
+                  errors.description ? 'border-[#DC2626]' : 'border-[#E2E8F0] focus:border-[#111827]'
+                } rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]`}
               />
             </div>
             {errors.description && (
-              <p className="text-[11px] text-[#EF4444] font-medium">{errors.description}</p>
+              <p className="text-[11px] text-[#DC2626] font-medium">{errors.description}</p>
             )}
           </div>
 
           {/* Amount & Date Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                 Amount ($)
               </label>
               <div className="relative">
@@ -207,17 +207,17 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
                   onChange={handleChange}
                   placeholder="0.00"
                   className={`w-full pl-10 pr-4 py-2.5 bg-white border ${
-                    errors.amount ? 'border-[#EF4444]' : 'border-[#CBD5E1] focus:border-[#DC2626]'
-                  } rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20`}
+                    errors.amount ? 'border-[#DC2626]' : 'border-[#E2E8F0] focus:border-[#111827]'
+                  } rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]`}
                 />
               </div>
               {errors.amount && (
-                <p className="text-[11px] text-[#EF4444] font-medium">{errors.amount}</p>
+                <p className="text-[11px] text-[#DC2626] font-medium">{errors.amount}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                 Transaction Date
               </label>
               <div className="relative">
@@ -229,7 +229,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
                   name="transactionDate"
                   value={formData.transactionDate}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] text-xs focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none"
                 />
               </div>
             </div>
@@ -238,7 +238,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
           {/* Category & Payment Method */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                 Category
               </label>
               <div className="relative">
@@ -249,7 +249,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] text-xs focus:outline-none appearance-none"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none appearance-none"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -261,7 +261,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                 Payment Method
               </label>
               <div className="relative">
@@ -272,7 +272,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
                   name="paymentMethod"
                   value={formData.paymentMethod}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] text-xs focus:outline-none appearance-none"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none appearance-none"
                 >
                   {PAYMENT_METHODS.map((pm) => (
                     <option key={pm.value} value={pm.value}>
@@ -286,7 +286,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
 
           {/* Tags */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
               Tags (comma-separated)
             </label>
             <input
@@ -295,13 +295,13 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
               value={formData.tags}
               onChange={handleChange}
               placeholder="e.g. personal, urgent, tax-deductible"
-              className="w-full px-4 py-2.5 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none"
             />
           </div>
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
               Additional Notes
             </label>
             <textarea
@@ -310,7 +310,7 @@ const TransactionModal = ({ isOpen, onClose, onSubmit, initialData = null, loadi
               value={formData.notes}
               onChange={handleChange}
               placeholder="Optional notes or context..."
-              className="w-full px-4 py-2.5 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none"
+              className="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none"
             />
           </div>
 

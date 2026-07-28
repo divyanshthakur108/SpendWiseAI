@@ -90,6 +90,35 @@ export const getCurrentUserService = async (userId) => {
 };
 
 /**
+ * Service: Update user profile
+ */
+export const updateUserProfileService = async (userId, { name }) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (name && name.trim()) {
+    user.name = name.trim();
+  }
+
+  await user.save();
+
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    isVerified: user.isVerified,
+    isBlocked: user.isBlocked,
+    createdAt: user.createdAt,
+  };
+};
+
+/**
  * Service: Generate reset password token
  */
 export const forgotPasswordService = async ({ email }) => {

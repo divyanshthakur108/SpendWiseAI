@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getTransactionsAPI } from '../services/transactionService';
 import {
@@ -84,17 +84,17 @@ const RecentTransactionsCard = ({ initialData = null, loading: parentLoading = f
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4 hover:border-[#CBD5E1] transition-all duration-250">
+    <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
       {/* Card Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-[#0F172A] tracking-tight">Recent Transactions</h3>
-          <p className="text-[11px] text-[#475569]">Your latest 5 financial activities</p>
+          <h3 className="text-sm font-semibold text-[#0F172A] tracking-tight">Recent Transactions</h3>
+          <p className="text-[11px] text-[#64748B]">Your latest 5 financial activities</p>
         </div>
 
         <Link
           to="/dashboard/transactions"
-          className="text-xs font-semibold text-[#DC2626] hover:text-[#B91C1C] flex items-center space-x-1 transition-colors"
+          className="text-xs font-semibold text-[#111827] hover:text-[#475569] flex items-center space-x-1 transition-colors"
         >
           <span>View All</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -105,12 +105,12 @@ const RecentTransactionsCard = ({ initialData = null, loading: parentLoading = f
       {loading ? (
         <div className="space-y-3 pt-1">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center justify-between py-2 border-b border-[#E2E8F0]">
+            <div key={i} className="flex items-center justify-between py-2 border-b border-[#F1F5F9]">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-[#F1F5F9] animate-pulse border border-[#E2E8F0]" />
                 <div className="space-y-1.5">
                   <div className="w-28 h-3.5 bg-[#F1F5F9] rounded animate-pulse" />
-                  <div className="w-20 h-2.5 bg-[#F8FAFC] rounded animate-pulse" />
+                  <div className="w-20 h-2.5 bg-[#F1F5F9] rounded animate-pulse" />
                 </div>
               </div>
               <div className="w-16 h-4 bg-[#F1F5F9] rounded animate-pulse" />
@@ -119,7 +119,7 @@ const RecentTransactionsCard = ({ initialData = null, loading: parentLoading = f
         </div>
       ) : transactions.length === 0 ? (
         <div className="py-10 text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-2xl bg-[#F1F5F9] border border-[#E2E8F0] text-[#111827] flex items-center justify-center mx-auto">
             <FileSpreadsheet className="w-6 h-6" />
           </div>
           <p className="text-xs font-semibold text-[#0F172A]">No recent transactions</p>
@@ -151,11 +151,11 @@ const RecentTransactionsCard = ({ initialData = null, loading: parentLoading = f
                   </div>
 
                   <div className="min-w-0 space-y-0.5">
-                    <p className="font-bold text-[#0F172A] text-xs truncate">
+                    <p className="font-semibold text-[#0F172A] text-xs truncate">
                       {tx.description || tx.category}
                     </p>
                     <div className="flex items-center space-x-2 text-[10px] text-[#64748B]">
-                      <span className="px-1.5 py-0.5 rounded bg-[#F1F5F9] border border-[#E2E8F0] font-medium text-[#334155]">
+                      <span className="px-1.5 py-0.5 rounded-md bg-[#F1F5F9] border border-[#E2E8F0] font-medium text-[#475569]">
                         {tx.category}
                       </span>
                       <span>•</span>
@@ -167,8 +167,8 @@ const RecentTransactionsCard = ({ initialData = null, loading: parentLoading = f
                 {/* Right: Amount */}
                 <div className="text-right shrink-0 pl-3">
                   <span
-                    className={`font-extrabold text-xs tracking-tight ${
-                      isIncome ? 'text-[#16A34A]' : 'text-[#DC2626]'
+                    className={`font-semibold text-xs tracking-tight ${
+                      isIncome ? 'text-[#16A34A]' : 'text-[#0F172A]'
                     }`}
                   >
                     {isIncome ? '+' : '-'}

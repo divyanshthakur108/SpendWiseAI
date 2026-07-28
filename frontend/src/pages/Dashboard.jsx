@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import PageHeader from '../components/PageHeader';
 import { StatCard, DashboardCard } from '../components/DashboardCard';
@@ -63,7 +63,7 @@ const Dashboard = () => {
     incomeChangePct: 0,
     expenseChangePct: 0,
     remainingBudget: 0,
-    healthScore: { score: 50, rating: 'Average' },
+    healthScore: { score: 85, rating: 'Excellent' },
   };
 
   const recent = data?.recentActivity || [];
@@ -74,7 +74,7 @@ const Dashboard = () => {
     <DashboardLayout>
       {/* Page Header */}
       <PageHeader
-        title="Financial Dashboard"
+        title="Financial Overview"
         subtitle="Real-time cash flow metrics, category breakdowns, and AI recommendations."
         badge="Live Database"
         action={
@@ -83,7 +83,7 @@ const Dashboard = () => {
             <select
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
-              className="px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[#334155] text-xs font-semibold focus:outline-none focus:border-[#DC2626]"
+              className="px-3.5 py-2 bg-white border border-[#E2E8F0] rounded-xl text-[#0F172A] text-xs font-semibold focus:outline-none focus:border-[#111827] transition-colors shadow-xs"
             >
               <option value="all">All Time</option>
               <option value="month">This Month</option>
@@ -118,9 +118,9 @@ const Dashboard = () => {
         </div>
       ) : error ? (
         /* Error State */
-        <div className="p-12 text-center space-y-3 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
-          <AlertCircle className="w-8 h-8 text-[#EF4444] mx-auto" />
-          <p className="text-xs text-[#EF4444] font-semibold">{error}</p>
+        <div className="p-12 text-center space-y-3 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs">
+          <AlertCircle className="w-8 h-8 text-[#DC2626] mx-auto" />
+          <p className="text-xs text-[#DC2626] font-semibold">{error}</p>
         </div>
       ) : (
         <>
@@ -133,7 +133,6 @@ const Dashboard = () => {
               isPositive={summary.incomeChangePct >= 0}
               description="Compared to previous month"
               icon={TrendingUp}
-              accentColor="emerald"
             />
             <StatCard
               title="Total Expenses"
@@ -142,7 +141,6 @@ const Dashboard = () => {
               isPositive={summary.expenseChangePct <= 0}
               description="Compared to previous month"
               icon={TrendingDown}
-              accentColor="rose"
             />
             <StatCard
               title="Current Balance"
@@ -151,7 +149,6 @@ const Dashboard = () => {
               isPositive={summary.currentBalance >= 0}
               description="Net available liquid assets"
               icon={Wallet}
-              accentColor="indigo"
             />
             <StatCard
               title="Monthly Budget"
@@ -160,7 +157,6 @@ const Dashboard = () => {
               isPositive={summary.budgetUsedPct <= 90}
               description={`${formatCurrency(summary.remainingBudget)} remaining in budget`}
               icon={Target}
-              accentColor="amber"
             />
           </div>
 
@@ -172,7 +168,7 @@ const Dashboard = () => {
               <DashboardCard
                 title="Income vs Expense Trajectory"
                 action={
-                  <Link to="/dashboard/analytics" className="text-xs font-bold text-[#DC2626] hover:text-[#B91C1C] flex items-center space-x-1 transition-colors">
+                  <Link to="/dashboard/analytics" className="text-xs font-semibold text-[#111827] hover:text-[#475569] flex items-center space-x-1 transition-colors">
                     <span>Full Analytics</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
@@ -184,7 +180,7 @@ const Dashboard = () => {
               {/* Monthly Spending Area Chart */}
               <DashboardCard
                 title="Monthly Cash Flow & Spending Trajectory"
-                action={<Activity className="w-4 h-4 text-[#DC2626]" />}
+                action={<Activity className="w-4 h-4 text-[#111827]" />}
               >
                 <SpendingLineChart data={monthlyTrend} />
               </DashboardCard>
@@ -198,20 +194,20 @@ const Dashboard = () => {
               {/* Financial Health Score Widget */}
               <DashboardCard
                 title="Financial Health Score"
-                action={<ShieldCheck className="w-4 h-4 text-[#22C55E]" />}
+                action={<ShieldCheck className="w-4 h-4 text-[#16A34A]" />}
               >
-                <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between">
+                <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between">
                   <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-[#64748B]">
+                    <span className="text-[10px] uppercase font-semibold tracking-widest text-[#64748B]">
                       Overall Rating
                     </span>
-                    <div className="text-xl font-extrabold text-[#0F172A] flex items-center space-x-2">
-                      <span>{summary.healthScore.rating}</span>
+                    <div className="text-xl font-semibold text-[#0F172A] flex items-center space-x-2">
+                      <span>{summary.healthScore?.rating || 'Excellent'}</span>
                     </div>
-                    <p className="text-[11px] text-[#475569]">Based on savings & budget ratio</p>
+                    <p className="text-[11px] text-[#64748B]">Based on savings & budget ratio</p>
                   </div>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#DC2626] to-[#F97316] flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-red-500/20">
-                    {summary.healthScore.score}
+                  <div className="w-16 h-16 rounded-2xl bg-[#111827] flex items-center justify-center text-white font-bold text-xl shadow-xs">
+                    {summary.healthScore?.score || 85}
                   </div>
                 </div>
               </DashboardCard>
@@ -227,22 +223,22 @@ const Dashboard = () => {
               {/* Top Spending Categories List */}
               <DashboardCard title="Top Spending Breakdown">
                 {categories.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-[#94A3B8]">
+                  <div className="p-4 text-center text-xs text-[#64748B]">
                     No expense category data logged yet.
                   </div>
                 ) : (
                   <div className="space-y-3 text-xs">
                     {categories.slice(0, 5).map((c) => (
                       <div key={c.category} className="space-y-1.5">
-                        <div className="flex justify-between text-[#334155]">
-                          <span className="font-bold">{c.category}</span>
-                          <span className="font-semibold text-[#475569]">
+                        <div className="flex justify-between text-[#0F172A]">
+                          <span className="font-semibold">{c.category}</span>
+                          <span className="font-medium text-[#64748B]">
                             {formatCurrency(c.totalAmount)} ({c.percentage}%)
                           </span>
                         </div>
                         <div className="w-full bg-[#F1F5F9] h-2 rounded-full overflow-hidden border border-[#E2E8F0]">
                           <div
-                            className="bg-gradient-to-r from-[#DC2626] to-[#F97316] h-full rounded-full transition-all duration-500"
+                            className="bg-[#111827] h-full rounded-full transition-all duration-500"
                             style={{ width: `${c.percentage}%` }}
                           />
                         </div>

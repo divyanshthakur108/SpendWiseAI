@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { TransactionProvider } from './context/TransactionContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -27,7 +28,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex justify-center items-center">
-        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -45,7 +46,7 @@ const AdminRoute = ({ children }) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex justify-center items-center">
-        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -67,7 +68,7 @@ const PublicRoute = ({ children }) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex justify-center items-center">
-        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -84,173 +85,175 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
-          <Routes>
-            {/* Root Route Redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <TransactionProvider>
+            <Routes>
+              {/* Root Route Redirect */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-            {/* Public Authentication Routes */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <PublicRoute>
-                  <ForgotPassword />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/reset-password/:resetToken"
-              element={
-                <PublicRoute>
-                  <ResetPassword />
-                </PublicRoute>
-              }
-            />
+              {/* Public Authentication Routes */}
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <PublicRoute>
+                    <Register />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/forgot-password"
+                element={
+                  <PublicRoute>
+                    <ForgotPassword />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/reset-password/:resetToken"
+                element={
+                  <PublicRoute>
+                    <ResetPassword />
+                  </PublicRoute>
+                }
+              />
 
-            {/* Primary Dashboard Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/transactions"
-              element={
-                <ProtectedRoute>
-                  <Transactions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/income"
-              element={
-                <ProtectedRoute>
-                  <Transactions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/expenses"
-              element={
-                <ProtectedRoute>
-                  <Transactions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/budgets"
-              element={
-                <ProtectedRoute>
-                  <Budgets />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/analytics"
-              element={
-                <ProtectedRoute>
-                  <Analytics />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/reports"
-              element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/ai"
-              element={
-                <ProtectedRoute>
-                  <AIInsights />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/receipts"
-              element={
-                <ProtectedRoute>
-                  <ReceiptScanner />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
+              {/* Primary Dashboard Routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/transactions"
+                element={
+                  <ProtectedRoute>
+                    <Transactions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/income"
+                element={
+                  <ProtectedRoute>
+                    <Transactions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/expenses"
+                element={
+                  <ProtectedRoute>
+                    <Transactions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/budgets"
+                element={
+                  <ProtectedRoute>
+                    <Budgets />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/analytics"
+                element={
+                  <ProtectedRoute>
+                    <Analytics />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/reports"
+                element={
+                  <ProtectedRoute>
+                    <Reports />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/ai"
+                element={
+                  <ProtectedRoute>
+                    <AIInsights />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/receipts"
+                element={
+                  <ProtectedRoute>
+                    <ReceiptScanner />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Alias Top-Level Routes */}
-            <Route path="/transactions" element={<Navigate to="/dashboard/transactions" replace />} />
-            <Route path="/expenses" element={<Navigate to="/dashboard/expenses" replace />} />
-            <Route path="/budgets" element={<Navigate to="/dashboard/budgets" replace />} />
-            <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
-            <Route path="/reports" element={<Navigate to="/dashboard/reports" replace />} />
-            <Route path="/ai-insights" element={<Navigate to="/dashboard/ai" replace />} />
+              {/* Alias Top-Level Routes */}
+              <Route path="/transactions" element={<Navigate to="/dashboard/transactions" replace />} />
+              <Route path="/expenses" element={<Navigate to="/dashboard/expenses" replace />} />
+              <Route path="/budgets" element={<Navigate to="/dashboard/budgets" replace />} />
+              <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
+              <Route path="/reports" element={<Navigate to="/dashboard/reports" replace />} />
+              <Route path="/ai-insights" element={<Navigate to="/dashboard/ai" replace />} />
 
-            {/* Protected Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/categories"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
+              {/* Protected Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/categories"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
 
-            {/* Fallback Pages */}
-            <Route path="/forbidden" element={<Forbidden />} />
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Fallback Pages */}
+              <Route path="/forbidden" element={<Forbidden />} />
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TransactionProvider>
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>

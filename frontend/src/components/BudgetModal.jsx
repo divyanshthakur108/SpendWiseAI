@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Loader2, DollarSign, Tag, Target } from 'lucide-react';
 
 const CATEGORIES = [
@@ -48,16 +48,16 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, initialData = null, loading })
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_16px_32px_rgba(15,23,42,0.12)] overflow-hidden z-10 animate-fade-in">
+      <div className="relative w-full max-w-md bg-white border border-[#E2E8F0] rounded-2xl shadow-md overflow-hidden z-10 animate-fade-in">
         <div className="px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Target className="w-5 h-5 text-[#DC2626]" />
-            <h3 className="text-base font-bold text-[#0F172A]">
+            <Target className="w-5 h-5 text-[#111827]" />
+            <h3 className="text-base font-semibold text-[#0F172A]">
               {isEditing ? 'Edit Monthly Budget' : 'Set Monthly Budget'}
             </h3>
           </div>
@@ -72,7 +72,7 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, initialData = null, loading })
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Category */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
               Budget Category
             </label>
             <div className="relative">
@@ -84,7 +84,7 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, initialData = null, loading })
                 value={formData.category}
                 onChange={handleChange}
                 disabled={isEditing}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] text-xs focus:outline-none disabled:opacity-60 disabled:bg-[#F8FAFC] appearance-none"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none disabled:opacity-60 appearance-none font-medium"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -95,7 +95,7 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, initialData = null, loading })
 
           {/* Amount */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#334155] uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
               Target Monthly Limit ($)
             </label>
             <div className="relative">
@@ -110,12 +110,12 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, initialData = null, loading })
                 onChange={handleChange}
                 placeholder="e.g. 2500"
                 className={`w-full pl-10 pr-4 py-2.5 bg-white border ${
-                  errors.amount ? 'border-[#EF4444]' : 'border-[#CBD5E1] focus:border-[#DC2626]'
-                } rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20`}
+                  errors.amount ? 'border-[#DC2626]' : 'border-[#E2E8F0] focus:border-[#111827]'
+                } rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]`}
               />
             </div>
             {errors.amount && (
-              <p className="text-[11px] text-[#EF4444] font-medium">{errors.amount}</p>
+              <p className="text-[11px] text-[#DC2626] font-medium">{errors.amount}</p>
             )}
           </div>
 

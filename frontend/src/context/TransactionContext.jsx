@@ -38,23 +38,27 @@ export const TransactionProvider = ({ children }) => {
     setTimeout(() => setToast(''), 3500);
   };
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchTransactions = useCallback(async (customParams = null) => {
     setLoading(true);
     setError('');
     try {
-      const params = {
-        page,
-        limit,
-        sort: sortOption,
-      };
-
-      if (search) params.search = search;
-      if (typeFilter) params.type = typeFilter;
-      if (categoryFilter) params.category = categoryFilter;
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (minAmount) params.minAmount = minAmount;
-      if (maxAmount) params.maxAmount = maxAmount;
+      let params = {};
+      if (customParams && typeof customParams === 'object') {
+        params = { ...customParams };
+      } else {
+        params = {
+          page,
+          limit,
+          sort: sortOption,
+        };
+        if (search) params.search = search;
+        if (typeFilter) params.type = typeFilter;
+        if (categoryFilter) params.category = categoryFilter;
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
+        if (minAmount) params.minAmount = minAmount;
+        if (maxAmount) params.maxAmount = maxAmount;
+      }
 
       const res = await getTransactionsAPI(params);
       if (res && res.success) {
@@ -71,7 +75,7 @@ export const TransactionProvider = ({ children }) => {
     }
   }, [page, limit, sortOption, search, typeFilter, categoryFilter, startDate, endDate, minAmount, maxAmount]);
 
-  const addTransaction = async (data) => {
+  const createTransaction = async (data) => {
     try {
       const res = await createTransactionAPI(data);
       if (res && res.success) {
@@ -88,7 +92,7 @@ export const TransactionProvider = ({ children }) => {
     }
   };
 
-  const editTransaction = async (id, data) => {
+  const updateTransaction = async (id, data) => {
     try {
       const res = await updateTransactionAPI(id, data);
       if (res && res.success) {
@@ -105,7 +109,7 @@ export const TransactionProvider = ({ children }) => {
     }
   };
 
-  const removeTransaction = async (id) => {
+  const deleteTransaction = async (id) => {
     try {
       const res = await deleteTransactionAPI(id);
       if (res && res.success) {
@@ -150,9 +154,12 @@ export const TransactionProvider = ({ children }) => {
         limit,
         setLimit,
         fetchTransactions,
-        addTransaction,
-        editTransaction,
-        removeTransaction,
+        createTransaction,
+        addTransaction: createTransaction,
+        updateTransaction,
+        editTransaction: updateTransaction,
+        deleteTransaction,
+        removeTransaction: deleteTransaction,
       }}
     >
       {children}
@@ -160,4 +167,26 @@ export const TransactionProvider = ({ children }) => {
   );
 };
 
-export const useTransactions = () => useContext(TransactionContext);
+export const useTransactions = () => {
+  const context = useContext(TransactionContext);
+  if (!context) {
+    console.warn('useTransactions was used outside of TransactionProvider context');
+    return {
+      transactions: [],
+      pagination: { currentPage: 1, limit: 10, totalTransactions: 0, totalPages: 1 },
+      loading: false,
+      error: '',
+      toast: '',
+      fetchTransactions: () => {},
+      createTransaction: () => {},
+      addTransaction: () => {},
+      updateTransaction: () => {},
+      editTransaction: () => {},
+      deleteTransaction: () => {},
+      removeTransaction: () => {},
+    };
+  }
+  return context;
+};
+
+export default TransactionContext;

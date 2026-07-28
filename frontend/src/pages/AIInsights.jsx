@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
+import PageHeader from '../components/PageHeader';
 import {
   parseExpenseAPI,
   getMonthlyInsightsAPI,
@@ -43,7 +44,7 @@ const FormatMarkdownText = ({ text }) => {
         const lineContent = parts.map((part, pIdx) => {
           if (part.startsWith('**') && part.endsWith('**')) {
             return (
-              <strong key={pIdx} className="font-bold text-[#0F172A]">
+              <strong key={pIdx} className="font-semibold text-[#0F172A]">
                 {part.slice(2, -2)}
               </strong>
             );
@@ -53,7 +54,7 @@ const FormatMarkdownText = ({ text }) => {
 
         if (line.startsWith('### ')) {
           return (
-            <h4 key={idx} className="font-bold text-sm text-[#DC2626] mt-2 mb-1">
+            <h4 key={idx} className="font-semibold text-sm text-[#0F172A] mt-2 mb-1">
               {line.replace('### ', '')}
             </h4>
           );
@@ -62,7 +63,7 @@ const FormatMarkdownText = ({ text }) => {
         if (line.startsWith('- ') || line.startsWith('* ')) {
           return (
             <div key={idx} className="flex items-start space-x-2 my-0.5 pl-1">
-              <span className="text-[#DC2626] font-bold">•</span>
+              <span className="text-[#111827] font-bold">•</span>
               <span>{lineContent}</span>
             </div>
           );
@@ -71,7 +72,7 @@ const FormatMarkdownText = ({ text }) => {
         if (/^\d+\.\s/.test(line)) {
           return (
             <div key={idx} className="flex items-start space-x-2 my-0.5 pl-1">
-              <span className="text-[#F97316] font-semibold">{line.split(' ')[0]}</span>
+              <span className="text-[#111827] font-semibold">{line.split(' ')[0]}</span>
               <span>{lineContent}</span>
             </div>
           );
@@ -210,28 +211,23 @@ const AIInsights = () => {
     <DashboardLayout>
       {/* Toast */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 flex items-center space-x-3 bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] px-5 py-3.5 rounded-xl shadow-[0_8px_24px_rgba(15,23,42,0.12)] animate-fade-in">
-          <CheckCircle2 className="w-5 h-5 text-[#22C55E] shrink-0" />
-          <span className="text-xs font-bold">{toast}</span>
+        <div className="fixed top-6 right-6 z-50 flex items-center space-x-3 bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] px-5 py-3.5 rounded-2xl shadow-md animate-fade-in">
+          <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />
+          <span className="text-xs font-semibold">{toast}</span>
         </div>
       )}
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E2E8F0] mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight flex items-center space-x-2.5">
-            <Sparkles className="w-6 h-6 text-[#DC2626]" />
-            <span>AI Copilot & Financial Intelligence</span>
-          </h1>
-          <p className="text-xs text-[#475569] mt-1">
-            Real-time MongoDB financial queries, natural language entry, and intelligent AI assistance.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="AI Copilot & Financial Intelligence"
+        subtitle="Real-time MongoDB financial queries, natural language entry, and intelligent AI assistance."
+        icon={Sparkles}
+        badge="AI Powered"
+      />
 
       {/* 1. Natural Language Expense Input */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#FEF2F2] via-white to-[#F0FDFA] border border-[#FECACA] shadow-[0_8px_24px_rgba(220,38,38,0.08)] space-y-3">
-        <div className="flex items-center space-x-2 text-[#DC2626] text-xs font-bold uppercase tracking-wider">
+      <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-3 relative overflow-hidden">
+        <div className="flex items-center space-x-2 text-[#475569] text-xs font-semibold uppercase tracking-wider">
           <Zap className="w-4 h-4 text-[#F59E0B]" />
           <span>Natural Language Expense Input</span>
         </div>
@@ -243,7 +239,7 @@ const AIInsights = () => {
               value={nlInput}
               onChange={(e) => setNlInput(e.target.value)}
               placeholder='Try: "I spent $45 on pizza yesterday" or "Earned $500 from freelance today"'
-              className="w-full px-4 py-3 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="w-full px-4 py-3 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]"
             />
           </div>
           <button
@@ -269,15 +265,15 @@ const AIInsights = () => {
       {/* Grid: AI Insights + Budget Advice */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 2. Monthly AI Insights */}
-        <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4">
+        <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
           <div className="flex items-center space-x-2">
-            <BrainCircuit className="w-5 h-5 text-[#DC2626]" />
-            <h3 className="text-base font-bold text-[#0F172A]">Monthly AI Spending Analysis</h3>
+            <BrainCircuit className="w-5 h-5 text-[#111827]" />
+            <h3 className="text-base font-semibold text-[#0F172A]">Monthly AI Spending Analysis</h3>
           </div>
 
           {insightsLoading ? (
             <div className="p-8 text-center text-xs text-[#64748B] flex flex-col items-center space-y-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#DC2626]" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#111827]" />
               <span>Generating personalized insights from MongoDB...</span>
             </div>
           ) : (
@@ -285,15 +281,15 @@ const AIInsights = () => {
               <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="text-[#64748B] font-medium">Top Expense Category</span>
-                  <span className="font-bold text-[#DC2626]">{summary?.highestCategory || 'None'}</span>
+                  <span className="font-semibold text-[#DC2626]">{summary?.highestCategory || 'None'}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="text-[#64748B] font-medium">Top Category Spend</span>
-                  <span className="font-extrabold text-[#0F172A]">{formatCurrency(summary?.highestCategoryAmount)}</span>
+                  <span className="font-semibold text-[#0F172A]">{formatCurrency(summary?.highestCategoryAmount)}</span>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#334155]">
+              <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A]">
                 <FormatMarkdownText text={insights} />
               </div>
             </div>
@@ -301,22 +297,22 @@ const AIInsights = () => {
         </div>
 
         {/* 3. Budget Advice & Alerts */}
-        <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4">
+        <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
-            <h3 className="text-base font-bold text-[#0F172A]">AI Budget Advice & Alerts</h3>
+            <h3 className="text-base font-semibold text-[#0F172A]">AI Budget Advice & Alerts</h3>
           </div>
 
           {adviceLoading ? (
             <div className="p-8 text-center text-xs text-[#64748B] flex flex-col items-center space-y-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#DC2626]" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#111827]" />
               <span>Evaluating threshold warnings...</span>
             </div>
           ) : adviceList.length === 0 ? (
             <div className="p-8 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-center space-y-2">
-              <CheckCircle2 className="w-6 h-6 text-[#22C55E] mx-auto" />
-              <p className="text-xs font-bold text-[#0F172A]">All Budgets Within Safe Limits</p>
-              <p className="text-[11px] text-[#475569]">
+              <CheckCircle2 className="w-6 h-6 text-[#16A34A] mx-auto" />
+              <p className="text-xs font-semibold text-[#0F172A]">All Budgets Within Safe Limits</p>
+              <p className="text-[11px] text-[#64748B]">
                 No active monthly budgets have exceeded the 80% threshold.
               </p>
             </div>
@@ -328,14 +324,12 @@ const AIInsights = () => {
                   className={`p-4 rounded-xl border space-y-1.5 text-xs ${
                     item.level === 'critical'
                       ? 'bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]'
-                      : item.level === 'warning'
-                      ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]'
-                      : 'bg-[#FFFBEB] border-[#FDE68A] text-[#CA8A04]'
+                      : 'bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]'
                   }`}
                 >
-                  <div className="flex items-center justify-between font-bold">
+                  <div className="flex items-center justify-between font-semibold">
                     <span>{item.message}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-white/60 border border-current/20">
+                    <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-white border border-current/20">
                       {item.percentage}% Spent
                     </span>
                   </div>
@@ -348,15 +342,15 @@ const AIInsights = () => {
       </div>
 
       {/* 4. AI Chatbot */}
-      <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4">
+      <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#DC2626] to-[#F97316] flex items-center justify-center text-white shadow-md shadow-red-500/20">
+            <div className="w-10 h-10 rounded-xl bg-[#111827] flex items-center justify-center text-white shadow-xs">
               <Bot className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#0F172A]">SpendWise AI Financial Assistant</h3>
-              <p className="text-[11px] text-[#475569]">Ask questions about your live transactions, categories, and savings</p>
+              <h3 className="text-base font-semibold text-[#0F172A]">SpendWise AI Financial Assistant</h3>
+              <p className="text-[11px] text-[#64748B]">Ask questions about your live transactions, categories, and savings</p>
             </div>
           </div>
         </div>
@@ -367,9 +361,9 @@ const AIInsights = () => {
             <button
               key={idx}
               onClick={() => handleSendChat(prompt)}
-              className="px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#DC2626] hover:bg-[#FEF2F2] text-[#334155] text-xs transition-all flex items-center space-x-1.5 hover:text-[#DC2626] font-medium"
+              className="px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#F1F5F9] text-[#475569] text-xs transition-all flex items-center space-x-1.5 font-medium hover:text-[#0F172A]"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-[#DC2626] shrink-0" />
+              <HelpCircle className="w-3.5 h-3.5 text-[#111827] shrink-0" />
               <span>{prompt}</span>
             </button>
           ))}
@@ -387,18 +381,18 @@ const AIInsights = () => {
               <div
                 className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
                   msg.sender === 'user'
-                    ? 'bg-[#DC2626] text-white'
-                    : 'bg-gradient-to-tr from-[#DC2626] to-[#F97316] text-white'
+                    ? 'bg-[#111827] text-white'
+                    : 'bg-[#F1F5F9] text-[#111827] border border-[#E2E8F0]'
                 }`}
               >
                 {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
               </div>
 
               <div
-                className={`p-4 rounded-xl text-xs max-w-xl leading-relaxed ${
+                className={`p-4 rounded-2xl text-xs max-w-xl leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-[#DC2626] text-white rounded-tr-none font-medium'
-                    : 'bg-white border border-[#E2E8F0] text-[#334155] rounded-tl-none shadow-sm'
+                    ? 'bg-[#111827] text-white rounded-tr-none font-medium shadow-xs'
+                    : 'bg-white border border-[#E2E8F0] text-[#0F172A] rounded-tl-none shadow-xs'
                 }`}
               >
                 {msg.sender === 'user' ? (
@@ -412,11 +406,11 @@ const AIInsights = () => {
 
           {chatLoading && (
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#DC2626] to-[#F97316] flex items-center justify-center text-white shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-[#111827] flex items-center justify-center text-white shrink-0">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="p-3.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#64748B] flex items-center space-x-2 shadow-sm">
-                <Loader2 className="w-4 h-4 animate-spin text-[#DC2626]" />
+              <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] text-xs text-[#64748B] flex items-center space-x-2 shadow-xs">
+                <Loader2 className="w-4 h-4 animate-spin text-[#111827]" />
                 <span>SpendWise AI is querying your data...</span>
               </div>
             </div>
@@ -437,7 +431,7 @@ const AIInsights = () => {
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             placeholder="Ask AI anything (e.g. 'How much did I spend this month?')"
-            className="flex-1 px-4 py-3 bg-white border border-[#CBD5E1] focus:border-[#DC2626] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20"
+            className="flex-1 px-4 py-3 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]"
           />
           <button
             type="submit"

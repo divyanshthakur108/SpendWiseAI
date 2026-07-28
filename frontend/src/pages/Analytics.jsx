@@ -7,14 +7,12 @@ import SpendingLineChart from '../components/charts/SpendingLineChart';
 import BudgetProgressChart from '../components/charts/BudgetProgressChart';
 import { getDashboardAnalyticsAPI } from '../services/analyticsService';
 import {
-  TrendingUp,
   PieChart as PieIcon,
   BarChart3,
   Activity,
   Target,
   Loader2,
   AlertCircle,
-  Sparkles,
 } from 'lucide-react';
 
 const Analytics = () => {
@@ -49,30 +47,30 @@ const Analytics = () => {
         title="Financial Analytics & Live Charts"
         subtitle="Real-time MongoDB analytics charts powered by Recharts."
         icon={BarChart3}
-        badge="Live Recharts"
+        badge="Live Analytics"
       />
 
       {loading ? (
-        <div className="p-16 flex flex-col items-center justify-center space-y-3 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#DC2626]" />
-          <p className="text-xs text-[#475569]">Processing live database analytics...</p>
+        <div className="p-16 flex flex-col items-center justify-center space-y-3 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs">
+          <Loader2 className="w-8 h-8 animate-spin text-[#111827]" />
+          <p className="text-xs text-[#64748B]">Processing live database analytics...</p>
         </div>
       ) : error ? (
-        <div className="p-8 text-center space-y-2 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
-          <AlertCircle className="w-8 h-8 text-[#EF4444] mx-auto" />
-          <p className="text-xs text-[#EF4444] font-semibold">{error}</p>
+        <div className="p-8 text-center space-y-2 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs">
+          <AlertCircle className="w-8 h-8 text-[#DC2626] mx-auto" />
+          <p className="text-xs text-[#DC2626] font-semibold">{error}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 1. Income vs Expense Bar Chart */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4 hover:border-[#CBD5E1] transition-all duration-250">
+          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] text-[#111827] flex items-center justify-center font-bold">
                   <BarChart3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#0F172A]">Income vs Expense</h3>
+                  <h3 className="text-sm font-semibold text-[#0F172A]">Income vs Expense</h3>
                   <p className="text-[11px] text-[#64748B]">Last 12 Months Comparison</p>
                 </div>
               </div>
@@ -81,14 +79,14 @@ const Analytics = () => {
           </div>
 
           {/* 2. Expense Category Pie Chart */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4 hover:border-[#CBD5E1] transition-all duration-250">
+          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] text-[#111827] flex items-center justify-center font-bold">
                   <PieIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#0F172A]">Expense Category Distribution</h3>
+                  <h3 className="text-sm font-semibold text-[#0F172A]">Expense Category Distribution</h3>
                   <p className="text-[11px] text-[#64748B]">Breakdown by Expense Category</p>
                 </div>
               </div>
@@ -97,14 +95,14 @@ const Analytics = () => {
           </div>
 
           {/* 3. Monthly Spending Line Chart */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4 hover:border-[#CBD5E1] transition-all duration-250">
+          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FAF5FF] border border-[#E9D5FF] text-[#9333EA] flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] text-[#111827] flex items-center justify-center font-bold">
                   <Activity className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#0F172A]">Monthly Spending Trajectory</h3>
+                  <h3 className="text-sm font-semibold text-[#0F172A]">Monthly Spending Trajectory</h3>
                   <p className="text-[11px] text-[#64748B]">Expense Trend (Last 12 Months)</p>
                 </div>
               </div>
@@ -113,14 +111,14 @@ const Analytics = () => {
           </div>
 
           {/* 4. Budget Progress Chart */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_8px_24px_rgba(15,23,42,0.08)] space-y-4 hover:border-[#CBD5E1] transition-all duration-250">
+          <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-[#F59E0B] flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] text-[#111827] flex items-center justify-center font-bold">
                   <Target className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#0F172A]">Budget vs Actual Spend</h3>
+                  <h3 className="text-sm font-semibold text-[#0F172A]">Budget vs Actual Spend</h3>
                   <p className="text-[11px] text-[#64748B]">Category Monthly Budget Progress</p>
                 </div>
               </div>

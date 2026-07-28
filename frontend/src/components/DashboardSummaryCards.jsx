@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   TrendingUp,
   TrendingDown,
@@ -6,7 +6,6 @@ import {
   Target,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles,
 } from 'lucide-react';
 
 const DashboardSummaryCards = ({
@@ -21,10 +20,10 @@ const DashboardSummaryCards = ({
     new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(val);
+    }).format(val || 0);
 
   const budgetUsedPercentage = Math.min(
-    Math.round((summaryData.totalExpenses / summaryData.monthlyBudget) * 100),
+    Math.round(((summaryData.totalExpenses || 0) / (summaryData.monthlyBudget || 1)) * 100),
     100
   );
 
@@ -38,20 +37,20 @@ const DashboardSummaryCards = ({
       subtext: 'vs previous month',
       icon: TrendingUp,
       iconBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-      glowColor: 'group-hover:border-emerald-500/40 group-hover:shadow-emerald-500/10',
-      badgeBg: 'bg-emerald-500/10 text-emerald-400',
+      glowColor: 'hover:border-emerald-500/40 hover:shadow-emerald-500/10',
+      badgeBg: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
     },
     {
       id: 'expenses',
       title: 'Total Expenses',
       amount: formatCurrency(summaryData.totalExpenses),
       change: '-4.8%',
-      changeType: 'positive-down', // lower expenses is good
+      changeType: 'positive-down',
       subtext: 'vs previous month',
       icon: TrendingDown,
       iconBg: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-      glowColor: 'group-hover:border-rose-500/40 group-hover:shadow-rose-500/10',
-      badgeBg: 'bg-rose-500/10 text-rose-400',
+      glowColor: 'hover:border-rose-500/40 hover:shadow-rose-500/10',
+      badgeBg: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
     },
     {
       id: 'balance',
@@ -61,9 +60,9 @@ const DashboardSummaryCards = ({
       changeType: 'positive',
       subtext: 'net savings rate',
       icon: Wallet,
-      iconBg: 'bg-red-500/10 text-red-400 border-red-500/20',
-      glowColor: 'group-hover:border-red-500/40 group-hover:shadow-red-500/10',
-      badgeBg: 'bg-red-500/10 text-red-400',
+      iconBg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+      glowColor: 'hover:border-indigo-500/40 hover:shadow-indigo-500/10',
+      badgeBg: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
     },
     {
       id: 'budget',
@@ -72,9 +71,9 @@ const DashboardSummaryCards = ({
       progress: budgetUsedPercentage,
       subtext: `${budgetUsedPercentage}% spent of budget`,
       icon: Target,
-      iconBg: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-      glowColor: 'group-hover:border-amber-500/40 group-hover:shadow-amber-500/10',
-      badgeBg: 'bg-amber-500/10 text-amber-400',
+      iconBg: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+      glowColor: 'hover:border-purple-500/40 hover:shadow-purple-500/10',
+      badgeBg: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
     },
   ];
 
@@ -85,9 +84,9 @@ const DashboardSummaryCards = ({
         return (
           <div
             key={card.id}
-            className={`group relative p-5 sm:p-6 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800/90 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${card.glowColor}`}
+            className={`group relative p-5 sm:p-6 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${card.glowColor}`}
           >
-            {/* Subtle Gradient Backlight */}
+            {/* Ambient Overlay */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
 
             {/* Header: Title + Icon */}
@@ -112,7 +111,7 @@ const DashboardSummaryCards = ({
               {card.progress !== undefined ? (
                 <div className="pt-2 space-y-1.5">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400">Budget Limit</span>
+                    <span className="text-slate-400">Budget Spent</span>
                     <span className="font-semibold text-slate-200">{card.progress}%</span>
                   </div>
                   <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden p-0.5 border border-slate-800">
@@ -122,14 +121,14 @@ const DashboardSummaryCards = ({
                           ? 'bg-rose-500'
                           : card.progress > 75
                           ? 'bg-amber-400'
-                          : 'bg-red-500'
+                          : 'bg-indigo-500'
                       }`}
                       style={{ width: `${card.progress}%` }}
                     />
                   </div>
                 </div>
               ) : (
-                /* Trend Badge for Income / Expense / Balance cards */
+                /* Trend Badge */
                 <div className="flex items-center space-x-2 pt-1">
                   <span
                     className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-xs font-semibold ${card.badgeBg}`}

@@ -2,6 +2,7 @@ import {
   registerUserService,
   loginUserService,
   getCurrentUserService,
+  updateUserProfileService,
   forgotPasswordService,
   resetPasswordService,
 } from '../services/authService.js';
@@ -93,6 +94,33 @@ export const getCurrentUser = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Update authenticated user profile details (e.g. name)
+ * @route   PUT /api/auth/profile
+ * @access  Private
+ */
+export const updateUserProfile = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name must be at least 2 characters long',
+      });
+    }
+
+    const updatedUser = await updateUserProfileService(req.user._id, { name });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: updatedUser,
     });
   } catch (error) {
     next(error);
