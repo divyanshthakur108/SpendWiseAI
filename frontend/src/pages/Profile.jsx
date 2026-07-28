@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import PageHeader from '../components/PageHeader';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Shield, CheckCircle2, Loader2, Save } from 'lucide-react';
 
 const Profile = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, updateUserProfile } = useAuth();
   const [name, setName] = useState(user?.name || '');
-  const [email] = useState(user?.email || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // Sync state when user context updates
+  useEffect(() => {
+    if (user) {
+      if (user.name) setName(user.name);
+      if (user.email) setEmail(user.email);
+    }
+  }, [user]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -21,16 +30,19 @@ const Profile = () => {
     if (!name.trim()) return;
 
     setLoading(true);
+    setErrorMsg('');
     try {
-      if (typeof updateProfile === 'function') {
-        await updateProfile({ name: name.trim() });
+      const profileUpdater = updateProfile || updateUserProfile;
+      if (typeof profileUpdater === 'function') {
+        await profileUpdater({ name: name.trim() });
         showToast('Profile name updated successfully!');
       } else {
-        showToast('Profile updated locally.');
+        throw new Error('Profile update function not available');
       }
     } catch (err) {
       console.error('Failed to update profile', err);
-      alert(err.response?.data?.message || 'Failed to update profile');
+      const message = err.response?.data?.message || err.message || 'Failed to update profile';
+      setErrorMsg(message);
     } finally {
       setLoading(false);
     }
@@ -40,7 +52,7 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      {/* Toast */}
+      {/* Toast Notification */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center space-x-3 bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] px-5 py-3.5 rounded-2xl shadow-md animate-fade-in">
           <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />
@@ -77,6 +89,12 @@ const Profile = () => {
             Personal Details
           </h3>
 
+          {errorMsg && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+              {errorMsg}
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-[#475569]">
               Full Name
@@ -90,7 +108,7 @@ const Profile = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your full name"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827] font-medium"
               />
             </div>
           </div>
@@ -107,7 +125,7 @@ const Profile = () => {
                 type="email"
                 value={email}
                 disabled
-                className="w-full pl-10 pr-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] rounded-xl text-xs cursor-not-allowed"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] rounded-xl text-xs cursor-not-allowed font-medium"
               />
             </div>
           </div>

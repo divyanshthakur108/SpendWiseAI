@@ -58,9 +58,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Profile update handler
-  const updateUserProfile = async (name) => {
-    const res = await api.put('/auth/profile', { name });
+  // Profile update handler (supports string or object payload)
+  const updateUserProfile = async (updateData) => {
+    const payload = typeof updateData === 'string' ? { name: updateData } : updateData;
+    const res = await api.put('/auth/profile', payload);
     if (res.data && res.data.success) {
       setUser(res.data.user);
       return res.data;
@@ -84,7 +85,16 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, updateUserProfile, logout }}
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        updateUserProfile,
+        updateProfile: updateUserProfile,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -98,3 +108,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;
