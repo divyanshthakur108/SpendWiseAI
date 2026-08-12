@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#F97316', '#f43f5e', '#EF4444'];
@@ -10,7 +10,7 @@ const CustomTooltip = ({ active, payload }) => {
       <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl shadow-xl text-xs space-y-1">
         <p className="font-bold text-white">{data.name}</p>
         <p className="text-slate-300">
-          Amount: <span className="font-bold text-red-400">${data.value}</span>
+          Amount: <span className="font-bold text-red-400">₹{data.value}</span>
         </p>
       </div>
     );

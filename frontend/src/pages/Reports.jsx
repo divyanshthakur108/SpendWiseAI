@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import PageHeader from '../components/PageHeader';
-import { getReportSummaryAPI, exportPDFAPI } from '../services/reportService';
+import { getReportSummaryAPI, exportCSVAPI } from '../services/reportService';
 import {
   FileText,
   Download,
@@ -12,6 +12,7 @@ import {
   TrendingDown,
   DollarSign,
   CheckCircle2,
+  Printer,
 } from 'lucide-react';
 
 const PRESETS = [
@@ -19,6 +20,7 @@ const PRESETS = [
   { label: 'Last 3 Months', value: '3months' },
   { label: 'Last 6 Months', value: '6months' },
   { label: 'This Year', value: 'year' },
+  { label: 'All Time', value: 'all' },
 ];
 
 const Reports = () => {
@@ -47,6 +49,8 @@ const Reports = () => {
       const res = await getReportSummaryAPI(params);
       if (res && res.success) {
         setReportData(res.data);
+      } else {
+        throw new Error(res?.message || 'Failed to load report');
       }
     } catch (err) {
       console.error('Failed to load report data', err);
@@ -60,69 +64,83 @@ const Reports = () => {
     fetchReport();
   }, [fetchReport]);
 
-  const handleExportPDF = async () => {
+  const handleExportCSV = async () => {
     setExporting(true);
     try {
       const params = { preset: selectedPreset };
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      await exportPDFAPI(params);
-      showToast('PDF Financial Report downloaded successfully!');
+      await exportCSVAPI(params);
+      showToast('CSV Financial Report downloaded successfully!');
     } catch (err) {
-      console.error('Error downloading PDF', err);
-      alert('Failed to download PDF report');
+      console.error('Error downloading CSV', err);
+      alert('Failed to download CSV report');
     } finally {
       setExporting(false);
     }
   };
 
+  const handleExportPDF = () => {
+    window.print();
+  };
+
   const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
+      maximumFractionDigits: 2,
     }).format(val || 0);
   };
+
+  const totalIncome = reportData?.totalIncome ?? reportData?.financialSummary?.totalIncome ?? 0;
+  const totalExpenses = reportData?.totalExpenses ?? reportData?.financialSummary?.totalExpenses ?? 0;
+  const netSavings = reportData?.netSavings ?? reportData?.netBalance ?? reportData?.financialSummary?.netSavings ?? reportData?.financialSummary?.netBalance ?? 0;
+  const categoryBreakdown = reportData?.categoryBreakdown || reportData?.topSpendingCategories || [];
+  const periodLabel = reportData?.periodLabel || 'This Month';
 
   return (
     <DashboardLayout>
       {/* Toast */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 flex items-center space-x-3 bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] px-5 py-3.5 rounded-2xl shadow-md animate-fade-in">
+        <div className="fixed top-6 right-6 z-50 flex items-center space-x-3 bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] px-5 py-3.5 rounded-2xl shadow-md animate-fade-in print:hidden">
           <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />
           <span className="text-xs font-semibold">{toast}</span>
         </div>
       )}
 
       {/* Header */}
-      <PageHeader
-        title="Financial Statement Reports"
-        subtitle="Generate printable PDF audit reports, net savings summary statements, and category breakdowns."
-        icon={FileText}
-        badge="PDF Export"
-        action={
-          <button
-            onClick={handleExportPDF}
-            disabled={exporting || loading}
-            className="btn-primary shrink-0 disabled:opacity-50"
-          >
-            {exporting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Generating PDF...</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4" />
-                <span>Export PDF Report</span>
-              </>
-            )}
-          </button>
-        }
-      />
+      <div className="print:hidden">
+        <PageHeader
+          title="Financial Statement Reports"
+          subtitle="Generate printable PDF audit reports, net savings summary statements, and category breakdowns."
+          icon={FileText}
+          badge="Audit Reports"
+          action={
+            <div className="flex items-center space-x-2 shrink-0">
+              <button
+                onClick={handleExportCSV}
+                disabled={exporting || loading}
+                className="btn-secondary text-xs disabled:opacity-50"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                <span>Export CSV</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                disabled={loading}
+                className="btn-primary text-xs disabled:opacity-50"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print PDF Statement</span>
+              </button>
+            </div>
+          }
+        />
+      </div>
 
       {/* Control Bar: Presets & Custom Date Picker */}
-      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl shadow-xs space-y-4">
+      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl shadow-xs space-y-4 print:hidden">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Preset Buttons */}
           <div className="flex flex-wrap items-center gap-2">
@@ -173,12 +191,12 @@ const Reports = () => {
 
       {/* Report Document Preview */}
       {loading ? (
-        <div className="p-16 flex flex-col items-center justify-center space-y-3 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs">
+        <div className="p-16 flex flex-col items-center justify-center space-y-3 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs print:hidden">
           <Loader2 className="w-8 h-8 animate-spin text-[#111827]" />
           <p className="text-xs text-[#64748B]">Compiling financial statement report...</p>
         </div>
       ) : error ? (
-        <div className="p-8 text-center space-y-2 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs">
+        <div className="p-8 text-center space-y-2 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs print:hidden">
           <AlertCircle className="w-8 h-8 text-[#DC2626] mx-auto" />
           <p className="text-xs text-[#DC2626] font-semibold">{error}</p>
         </div>
@@ -189,7 +207,7 @@ const Reports = () => {
             <div>
               <h2 className="text-xl font-semibold text-[#0F172A]">Financial Statement Audit Summary</h2>
               <p className="text-xs text-[#64748B] mt-1">
-                Statement Period: {reportData?.periodLabel || 'All Time'}
+                Statement Period: <span className="font-semibold text-[#0F172A]">{periodLabel}</span>
               </p>
             </div>
 
@@ -208,7 +226,7 @@ const Reports = () => {
                 <span>Total Income</span>
               </span>
               <p className="text-2xl font-semibold text-[#16A34A]">
-                {formatCurrency(reportData?.totalIncome)}
+                {formatCurrency(totalIncome)}
               </p>
             </div>
 
@@ -218,7 +236,7 @@ const Reports = () => {
                 <span>Total Expenses</span>
               </span>
               <p className="text-2xl font-semibold text-[#DC2626]">
-                {formatCurrency(reportData?.totalExpenses)}
+                {formatCurrency(totalExpenses)}
               </p>
             </div>
 
@@ -228,7 +246,7 @@ const Reports = () => {
                 <span>Net Savings</span>
               </span>
               <p className="text-2xl font-semibold text-[#0F172A]">
-                {formatCurrency(reportData?.netSavings)}
+                {formatCurrency(netSavings)}
               </p>
             </div>
           </div>
@@ -246,13 +264,21 @@ const Reports = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F1F5F9] text-[#0F172A]">
-                  {(reportData?.categoryBreakdown || []).map((cat) => (
-                    <tr key={cat.category} className="hover:bg-[#F8FAFC]">
-                      <td className="px-4 py-3 font-semibold text-[#0F172A]">{cat.category}</td>
-                      <td className="px-4 py-3 text-right font-medium">{formatCurrency(cat.amount)}</td>
-                      <td className="px-4 py-3 text-right font-medium text-[#64748B]">{cat.percentage}%</td>
+                  {categoryBreakdown.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-6 text-center text-[#64748B]">
+                        No expenses logged for this period.
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    categoryBreakdown.map((cat) => (
+                      <tr key={cat.category} className="hover:bg-[#F8FAFC]">
+                        <td className="px-4 py-3 font-semibold text-[#0F172A]">{cat.category}</td>
+                        <td className="px-4 py-3 text-right font-medium">{formatCurrency(cat.amount)}</td>
+                        <td className="px-4 py-3 text-right font-medium text-[#64748B]">{cat.percentage}%</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -264,3 +290,5 @@ const Reports = () => {
 };
 
 export default Reports;
+
+

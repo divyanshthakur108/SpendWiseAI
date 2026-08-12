@@ -120,7 +120,7 @@ const BudgetModal = ({ isOpen, onClose, onSubmit, initialData = null, loading })
           {/* Amount */}
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-              Target Monthly Limit ($)
+              Target Monthly Limit (₹)
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#94A3B8]">

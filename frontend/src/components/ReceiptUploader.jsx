@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { UploadCloud, Image as ImageIcon, X, CheckCircle2, Loader2 } from 'lucide-react';
 import { uploadReceiptAPI } from '../services/uploadService';
 
@@ -25,8 +25,8 @@ const ReceiptUploader = ({ value, onChange }) => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File size cannot exceed 5MB');
+    if (file.size > 50 * 1024 * 1024) {
+      setError('File size cannot exceed 50MB');
       return;
     }
 
@@ -173,7 +173,7 @@ const ReceiptUploader = ({ value, onChange }) => {
                 <p className="text-xs font-semibold text-slate-200">
                   Drag & drop receipt image, or <span className="text-red-400">browse</span>
                 </p>
-                <p className="text-[10px] text-slate-500 mt-0.5">PNG, JPG, WEBP up to 5MB</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">PNG, JPG, WEBP up to 50MB</p>
               </div>
             </div>
           )}

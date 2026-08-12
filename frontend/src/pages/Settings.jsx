@@ -6,7 +6,7 @@ import { Settings as SettingsIcon, Bell, Database, Save, CheckCircle2 } from 'lu
 const Settings = () => {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [budgetWarnings, setBudgetWarnings] = useState(true);
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('INR');
   const [toast, setToast] = useState('');
 
   const handleSaveSettings = (e) => {

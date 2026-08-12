@@ -19,8 +19,8 @@ app.set('trust proxy', 1);
 // Security & Core Middlewares
 app.use(securityHeaders);
 app.use(rateLimiter);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use((req, res, next) => {
   req.cookies = {};
   const cookieHeader = req.headers.cookie;

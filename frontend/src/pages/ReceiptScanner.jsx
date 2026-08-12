@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import PageHeader from '../components/PageHeader';
 import { uploadReceiptAPI } from '../services/uploadService';
+import { scanReceiptOCRAPI } from '../services/ocrService';
 import { useTransactions } from '../context/TransactionContext';
 import {
   Camera,
@@ -12,6 +13,7 @@ import {
   AlertCircle,
   Plus,
   Image as ImageIcon,
+  Calendar,
 } from 'lucide-react';
 
 const ReceiptScanner = () => {
@@ -52,12 +54,21 @@ const ReceiptScanner = () => {
     setOcrData(null);
 
     try {
-      const res = await uploadReceiptAPI(selectedFile);
-      if (res && res.success) {
-        setOcrData(res.data);
-        showToast('Receipt scanned successfully with OCR!');
+      // 1. Upload receipt image to Cloudinary / Data URI
+      const uploadRes = await uploadReceiptAPI(selectedFile);
+      if (uploadRes && uploadRes.success) {
+        const imageUrl = uploadRes.url || previewUrl;
+
+        // 2. Perform OCR Field Extraction API scan
+        const ocrRes = await scanReceiptOCRAPI(imageUrl);
+        if (ocrRes && ocrRes.success && ocrRes.data) {
+          setOcrData(ocrRes.data);
+          showToast('Receipt scanned successfully with OCR!');
+        } else {
+          throw new Error(ocrRes?.message || 'Failed to extract receipt fields via OCR');
+        }
       } else {
-        throw new Error(res?.message || 'Failed to scan receipt');
+        throw new Error(uploadRes?.message || 'Failed to upload receipt image');
       }
     } catch (err) {
       console.error('Error scanning receipt', err);
@@ -71,14 +82,17 @@ const ReceiptScanner = () => {
     if (!ocrData) return;
 
     try {
+      const merchantName = ocrData.merchantName || ocrData.merchant || 'Scanned Receipt';
       await createTransaction({
         type: 'expense',
         category: ocrData.category || 'Shopping',
-        amount: ocrData.amount || 0,
-        description: ocrData.merchantName ? `Receipt: ${ocrData.merchantName}` : 'Scanned Receipt',
-        transactionDate: ocrData.date || new Date(),
-        receiptImage: ocrData.receiptUrl || previewUrl,
-        notes: `OCR Confidence: ${ocrData.confidence || '95%'}`,
+        amount: typeof ocrData.amount === 'number' ? ocrData.amount : parseFloat(ocrData.amount) || 0,
+        description: `Receipt: ${merchantName}`,
+        transactionDate: ocrData.date || new Date().toISOString().split('T')[0],
+        receiptImage: ocrData.receiptUrl || ocrData.receiptImage || previewUrl,
+        notes: ocrData.warning
+          ? `OCR Warning: ${ocrData.warning}`
+          : `Scanned via SpendWise OCR Engine (Confidence: ${ocrData.confidence || '95%'})`,
       });
 
       showToast('Transaction created from scanned receipt!');
@@ -103,7 +117,7 @@ const ReceiptScanner = () => {
       {/* Header */}
       <PageHeader
         title="Receipt OCR Scanner"
-        subtitle="Upload receipt images to automatically extract merchant, date, amount, and category using Tesseract OCR."
+        subtitle="Upload receipt images to automatically extract merchant, date, amount, and category using Tesseract & AI Vision OCR."
         icon={Camera}
         badge="OCR Engine"
       />
@@ -163,7 +177,7 @@ const ReceiptScanner = () => {
             {scanning ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Running Tesseract OCR Engine...</span>
+                <span>Scanning Receipt with AI OCR...</span>
               </>
             ) : (
               <>
@@ -191,15 +205,33 @@ const ReceiptScanner = () => {
             </div>
           ) : (
             <div className="space-y-4 animate-fade-in">
+              {ocrData.warning && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start space-x-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                  <span>{ocrData.warning}</span>
+                </div>
+              )}
+
               <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3 text-xs">
                 <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
                   <span className="text-[#64748B] font-medium">Merchant / Vendor</span>
-                  <span className="font-semibold text-[#0F172A]">{ocrData.merchantName || 'Unknown Vendor'}</span>
+                  <span className="font-semibold text-[#0F172A]">
+                    {ocrData.merchantName || ocrData.merchant || 'Unknown Vendor'}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
                   <span className="text-[#64748B] font-medium">Extracted Amount</span>
-                  <span className="font-semibold text-[#16A34A] text-sm">${ocrData.amount || '0.00'}</span>
+                  <span className="font-semibold text-[#16A34A] text-sm">
+                    ${typeof ocrData.amount === 'number' ? ocrData.amount.toFixed(2) : ocrData.amount || '0.00'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
+                  <span className="text-[#64748B] font-medium">Transaction Date</span>
+                  <span className="font-semibold text-[#0F172A]">
+                    {ocrData.date || new Date().toISOString().split('T')[0]}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
@@ -231,3 +263,6 @@ const ReceiptScanner = () => {
 };
 
 export default ReceiptScanner;
+
+
+

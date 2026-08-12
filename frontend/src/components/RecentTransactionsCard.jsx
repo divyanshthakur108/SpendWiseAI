@@ -62,9 +62,10 @@ const RecentTransactionsCard = ({ initialData = null, loading: parentLoading = f
   }, [initialData, parentLoading]);
 
   const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
+      maximumFractionDigits: 2,
     }).format(val || 0);
   };
 
@@ -168,7 +169,7 @@ const RecentTransactionsCard = ({ initialData = null, loading: parentLoading = f
                 <div className="text-right shrink-0 pl-3">
                   <span
                     className={`font-semibold text-xs tracking-tight ${
-                      isIncome ? 'text-[#16A34A]' : 'text-[#0F172A]'
+                      isIncome ? 'text-[#16A34A]' : 'text-[#DC2626]'
                     }`}
                   >
                     {isIncome ? '+' : '-'}

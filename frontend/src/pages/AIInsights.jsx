@@ -204,7 +204,7 @@ const AIInsights = () => {
   };
 
   const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(val || 0);
   };
 
   return (
@@ -238,7 +238,7 @@ const AIInsights = () => {
               type="text"
               value={nlInput}
               onChange={(e) => setNlInput(e.target.value)}
-              placeholder='Try: "I spent $45 on pizza yesterday" or "Earned $500 from freelance today"'
+              placeholder='Try: "I spent ₹450 on pizza yesterday" or "Earned ₹50000 from freelance today"'
               className="w-full px-4 py-3 bg-white border border-[#E2E8F0] focus:border-[#111827] rounded-xl text-[#0F172A] placeholder-[#94A3B8] text-xs focus:outline-none focus:ring-1 focus:ring-[#111827]"
             />
           </div>

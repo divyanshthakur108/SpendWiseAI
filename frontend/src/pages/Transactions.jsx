@@ -206,15 +206,16 @@ const Transactions = () => {
   };
 
   const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
+      maximumFractionDigits: 2,
     }).format(val || 0);
   };
 
   const formatDate = (dateVal) => {
     if (!dateVal) return '-';
-    return new Date(dateVal).toLocaleDateString('en-US', {
+    return new Date(dateVal).toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -386,7 +387,7 @@ const Transactions = () => {
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-[#64748B] uppercase mb-1">Min Amount ($)</label>
+              <label className="block text-[10px] font-semibold text-[#64748B] uppercase mb-1">Min Amount (₹)</label>
               <input
                 type="number"
                 value={minAmount}
@@ -399,7 +400,7 @@ const Transactions = () => {
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-[#64748B] uppercase mb-1">Max Amount ($)</label>
+              <label className="block text-[10px] font-semibold text-[#64748B] uppercase mb-1">Max Amount (₹)</label>
               <input
                 type="number"
                 value={maxAmount}
@@ -499,7 +500,7 @@ const Transactions = () => {
                     </td>
                     <td
                       className={`px-6 py-4 text-right font-semibold whitespace-nowrap ${
-                        tx.type === 'income' ? 'text-[#16A34A]' : 'text-[#0F172A]'
+                        tx.type === 'income' ? 'text-[#16A34A]' : 'text-[#DC2626]'
                       }`}
                     >
                       {tx.type === 'income' ? '+' : '-'}

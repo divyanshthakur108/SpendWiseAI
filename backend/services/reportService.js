@@ -18,12 +18,13 @@ export const getPresetDateRange = (preset, customStart, customEnd) => {
       break;
     case 'this_week':
       const day = now.getDay();
-      const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
       start = new Date(now.setDate(diff));
       start.setHours(0, 0, 0, 0);
       end = new Date();
       end.setHours(23, 59, 59, 999);
       break;
+    case 'month':
     case 'this_month':
       start = new Date(now.getFullYear(), now.getMonth(), 1);
       end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
@@ -32,19 +33,28 @@ export const getPresetDateRange = (preset, customStart, customEnd) => {
       start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
       break;
+    case '3months':
     case 'last_3_months':
       start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
       end = new Date();
       end.setHours(23, 59, 59, 999);
       break;
+    case '6months':
     case 'last_6_months':
       start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
       end = new Date();
       end.setHours(23, 59, 59, 999);
       break;
+    case 'year':
     case 'this_year':
       start = new Date(now.getFullYear(), 0, 1);
       end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+      break;
+    case 'all':
+    case 'all_time':
+      start = new Date(0);
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
       break;
     case 'custom':
       start = customStart ? new Date(customStart) : new Date(now.getFullYear(), now.getMonth(), 1);
@@ -63,7 +73,7 @@ export const getPresetDateRange = (preset, customStart, customEnd) => {
  * Service: Generate complete report summary data
  */
 export const getReportSummaryService = async (userId, query) => {
-  const { preset = 'this_month', startDate, endDate } = query;
+  const { preset = 'month', startDate, endDate } = query;
   const { start, end } = getPresetDateRange(preset, startDate, endDate);
 
   const user = await User.findById(userId).select('name email');
@@ -105,13 +115,26 @@ export const getReportSummaryService = async (userId, query) => {
   const remainingBudget = Math.max(0, totalBudget - budgetUsed);
 
   // Category Breakdown sorted from highest to lowest
-  const topSpendingCategories = Object.entries(categoryTotals)
+  const categoryBreakdown = Object.entries(categoryTotals)
     .map(([category, amount]) => ({
       category,
       amount: Math.round(amount * 100) / 100,
       percentage: totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100 * 10) / 10 : 0,
     }))
     .sort((a, b) => b.amount - a.amount);
+
+  let periodLabel = 'This Month';
+  if (preset === '3months' || preset === 'last_3_months') {
+    periodLabel = 'Last 3 Months';
+  } else if (preset === '6months' || preset === 'last_6_months') {
+    periodLabel = 'Last 6 Months';
+  } else if (preset === 'year' || preset === 'this_year') {
+    periodLabel = 'This Year';
+  } else if (preset === 'all' || preset === 'all_time') {
+    periodLabel = 'All Time';
+  } else if (preset === 'custom' || (startDate && endDate)) {
+    periodLabel = `${startDate || start.toISOString().split('T')[0]} to ${endDate || end.toISOString().split('T')[0]}`;
+  }
 
   return {
     userInfo: {
@@ -123,16 +146,27 @@ export const getReportSummaryService = async (userId, query) => {
       startDate: start.toISOString().split('T')[0],
       endDate: end.toISOString().split('T')[0],
     },
+    periodLabel,
+    totalIncome: Math.round(totalIncome * 100) / 100,
+    totalExpenses: Math.round(totalExpenses * 100) / 100,
+    netSavings: Math.round(netBalance * 100) / 100,
+    netBalance: Math.round(netBalance * 100) / 100,
+    totalBudget: Math.round(totalBudget * 100) / 100,
+    budgetUsed: Math.round(budgetUsed * 100) / 100,
+    remainingBudget: Math.round(remainingBudget * 100) / 100,
+    transactionCount: transactions.length,
+    categoryBreakdown,
+    topSpendingCategories: categoryBreakdown,
     financialSummary: {
       totalIncome: Math.round(totalIncome * 100) / 100,
       totalExpenses: Math.round(totalExpenses * 100) / 100,
       netBalance: Math.round(netBalance * 100) / 100,
+      netSavings: Math.round(netBalance * 100) / 100,
       totalBudget: Math.round(totalBudget * 100) / 100,
       budgetUsed: Math.round(budgetUsed * 100) / 100,
       remainingBudget: Math.round(remainingBudget * 100) / 100,
       transactionCount: transactions.length,
     },
-    topSpendingCategories,
     transactions,
   };
 };

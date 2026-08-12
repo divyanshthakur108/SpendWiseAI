@@ -111,14 +111,15 @@ const Budgets = () => {
 
   const openDeleteModal = (budget) => {
     setDeleteId(budget._id);
-    setDeleteTitle(`${budget.category} Budget ($${budget.amount})`);
+    setDeleteTitle(`${budget.category} Budget (₹${budget.amount})`);
     setIsDeleteOpen(true);
   };
 
   const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
+      maximumFractionDigits: 2,
     }).format(val || 0);
   };
 

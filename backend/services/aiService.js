@@ -221,7 +221,7 @@ export const generateMonthlyInsights = async (summaryData) => {
     }
   }
 
-  return `### Monthly AI Financial Summary\n- **Spending Trend**: Your highest expense category is **${summaryData.highestCategory}** ($${summaryData.highestCategoryAmount}).\n- **Budget Health**: You spent $${summaryData.thisMonthExpense} this month out of $${summaryData.thisMonthIncome} in income.\n- **Net Savings**: Your current net balance is **$${summaryData.netSavings}** with a savings rate of **${summaryData.savingsRate}**.`;
+  return `### Monthly AI Financial Summary\n- **Spending Trend**: Your highest expense category is **${summaryData.highestCategory}** (₹${summaryData.highestCategoryAmount}).\n- **Budget Health**: You spent ₹${summaryData.thisMonthExpense} this month out of ₹${summaryData.thisMonthIncome} in income.\n- **Net Savings**: Your current net balance is **₹${summaryData.netSavings}** with a savings rate of **${summaryData.savingsRate}**.`;
 };
 
 /**
@@ -234,31 +234,32 @@ export const chatWithFinancialAI = async (userMessage, liveContext) => {
 
   const systemPrompt = `You are SpendWise AI, an intelligent personal finance copilot. You have real-time access to the user's authentic financial records from MongoDB below:
 
-AUTHENTIC USER FINANCIAL DATA:
+AUTHENTIC USER FINANCIAL DATA (IN INDIAN RUPEES ₹ / INR):
 - Has Transactions: ${liveContext.hasTransactions}
 - Total Transactions Count: ${liveContext.totalTransactionsCount}
-- This Month Expense: $${liveContext.thisMonthExpense} across ${liveContext.thisMonthTransactionCount} transactions
-- This Month Income: $${liveContext.thisMonthIncome}
-- Net Balance This Month: $${liveContext.thisMonthNetBalance}
-- All-Time Total Income: $${liveContext.totalIncome}
-- All-Time Total Expense: $${liveContext.totalExpense}
-- Net Savings: $${liveContext.netSavings} (Savings Rate: ${liveContext.savingsRate})
-- Top Expense Category: ${liveContext.highestCategory} ($${liveContext.highestCategoryAmount})
+- This Month Expense: ₹${liveContext.thisMonthExpense} across ${liveContext.thisMonthTransactionCount} transactions
+- This Month Income: ₹${liveContext.thisMonthIncome}
+- Net Balance This Month: ₹${liveContext.thisMonthNetBalance}
+- All-Time Total Income: ₹${liveContext.totalIncome}
+- All-Time Total Expense: ₹${liveContext.totalExpense}
+- Net Savings: ₹${liveContext.netSavings} (Savings Rate: ${liveContext.savingsRate})
+- Top Expense Category: ${liveContext.highestCategory} (₹${liveContext.highestCategoryAmount})
 - Category Expense Breakdown: ${JSON.stringify(liveContext.categoryBreakdown)}
-- Category Increased Most: ${liveContext.categoryIncreasedMost} (Increased by +$${liveContext.maxIncreaseAmount})
-- Largest Single Expense: ${liveContext.largestExpense ? `${liveContext.largestExpense.description} ($${liveContext.largestExpense.amount}) in ${liveContext.largestExpense.category} on ${liveContext.largestExpense.date}` : 'None'}
-- Average Daily Spending This Month: $${liveContext.averageDailySpending}
-- Monthly Budget Limit: $${liveContext.totalBudgetLimit}
-- Total Budget Spent: $${liveContext.totalBudgetSpent}
-- Remaining Budget: $${liveContext.remainingBudget}
-- Comparison vs Last Month: Expense change $${liveContext.expenseDiff} (${liveContext.expenseDiffPercent > 0 ? '+' : ''}${liveContext.expenseDiffPercent}%), Last month income: $${liveContext.lastMonthIncome}, Last month expense: $${liveContext.lastMonthExpense}
+- Category Increased Most: ${liveContext.categoryIncreasedMost} (Increased by +₹${liveContext.maxIncreaseAmount})
+- Largest Single Expense: ${liveContext.largestExpense ? `${liveContext.largestExpense.description} (₹${liveContext.largestExpense.amount}) in ${liveContext.largestExpense.category} on ${liveContext.largestExpense.date}` : 'None'}
+- Average Daily Spending This Month: ₹${liveContext.averageDailySpending}
+- Monthly Budget Limit: ₹${liveContext.totalBudgetLimit}
+- Total Budget Spent: ₹${liveContext.totalBudgetSpent}
+- Remaining Budget: ₹${liveContext.remainingBudget}
+- Comparison vs Last Month: Expense change ₹${liveContext.expenseDiff} (${liveContext.expenseDiffPercent > 0 ? '+' : ''}${liveContext.expenseDiffPercent}%), Last month income: ₹${liveContext.lastMonthIncome}, Last month expense: ₹${liveContext.lastMonthExpense}
 - Recent 5 Transactions: ${JSON.stringify(liveContext.recentTransactions)}
 
 STRICT RULES:
 1. Always base your answer strictly on the authentic financial data provided above.
-2. Never invent or hallucinate fake numbers or dollar amounts.
-3. Answer user questions directly, accurately, and concisely.
-4. Format your output with clear markdown lists or bold headers.`;
+2. Format all monetary values in Indian Rupees (₹ / INR).
+3. Never invent or hallucinate fake numbers or currency symbols.
+4. Answer user questions directly, accurately, and concisely.
+5. Format your output with clear markdown lists or bold headers.`;
 
   // 1. Try Groq (Free Llama 3.3 70B)
   const groq = getGroqClient();
@@ -343,15 +344,15 @@ STRICT RULES:
   const lower = userMessage.toLowerCase();
 
   if (lower.includes('spend this month') || lower.includes('spent this month') || (lower.includes('spent') && lower.includes('month'))) {
-    return `You have spent **$${liveContext.thisMonthExpense}** this month across **${liveContext.thisMonthTransactionCount} transactions**.\n\n- **Total Income Received**: $${liveContext.thisMonthIncome}\n- **Net Balance**: $${liveContext.thisMonthNetBalance}`;
+    return `You have spent **₹${liveContext.thisMonthExpense}** this month across **${liveContext.thisMonthTransactionCount} transactions**.\n\n- **Total Income Received**: ₹${liveContext.thisMonthIncome}\n- **Net Balance**: ₹${liveContext.thisMonthNetBalance}`;
   }
 
   if (lower.includes('income') || lower.includes('received') || lower.includes('earned')) {
-    return `You have received **$${liveContext.thisMonthIncome}** in income this month.\n\n- **All-Time Total Income**: $${liveContext.totalIncome}\n- **Net Savings**: $${liveContext.netSavings}`;
+    return `You have received **₹${liveContext.thisMonthIncome}** in income this month.\n\n- **All-Time Total Income**: ₹${liveContext.totalIncome}\n- **Net Savings**: ₹${liveContext.netSavings}`;
   }
 
   if (lower.includes('highest') || lower.includes('top category') || lower.includes('highest expense')) {
-    return `Your highest expense category is **${liveContext.highestCategory}**, totaling **$${liveContext.highestCategoryAmount}**.`;
+    return `Your highest expense category is **${liveContext.highestCategory}**, totaling **₹${liveContext.highestCategoryAmount}**.`;
   }
 
   if (lower.includes('recent') || lower.includes('recent transactions') || lower.includes('last transactions')) {
@@ -359,48 +360,48 @@ STRICT RULES:
       return `You don't have any recent transactions logged yet.`;
     }
     const txList = liveContext.recentTransactions
-      .map((t) => `- **${t.description}**: $${t.amount} (${t.category}, ${t.type}) on ${t.date}`)
+      .map((t) => `- **${t.description}**: ₹${t.amount} (${t.category}, ${t.type}) on ${t.date}`)
       .join('\n');
     return `Here are your recent transactions:\n${txList}`;
   }
 
   if (lower.includes('saved') || lower.includes('savings') || lower.includes('net savings')) {
-    return `You have saved **$${liveContext.netSavings}** overall with a savings rate of **${liveContext.savingsRate}**.\n\n- **Total Income**: $${liveContext.totalIncome}\n- **Total Expenses**: $${liveContext.totalExpense}`;
+    return `You have saved **₹${liveContext.netSavings}** overall with a savings rate of **${liveContext.savingsRate}**.\n\n- **Total Income**: ₹${liveContext.totalIncome}\n- **Total Expenses**: ₹${liveContext.totalExpense}`;
   }
 
   if (lower.includes('budget') || lower.includes('remains')) {
     if (liveContext.totalBudgetLimit === 0) {
       return `You haven't set up any active budget limits for this month yet. Head over to the **Budgets** tab to create category limits!`;
     }
-    return `You have **$${liveContext.remainingBudget}** remaining in your active monthly budget out of **$${liveContext.totalBudgetLimit}** total limit.\n\n- **Budget Spent**: $${liveContext.totalBudgetSpent}`;
+    return `You have **₹${liveContext.remainingBudget}** remaining in your active monthly budget out of **₹${liveContext.totalBudgetLimit}** total limit.\n\n- **Budget Spent**: ₹${liveContext.totalBudgetSpent}`;
   }
 
   if (lower.includes('increased') || lower.includes('increase') || lower.includes('category increased')) {
     if (liveContext.categoryIncreasedMost === 'None') {
       return `None of your expense categories showed an increase compared to last month.`;
     }
-    return `The category that increased the most compared to last month is **${liveContext.categoryIncreasedMost}**, which went up by **+$${liveContext.maxIncreaseAmount}**.`;
+    return `The category that increased the most compared to last month is **${liveContext.categoryIncreasedMost}**, which went up by **+₹${liveContext.maxIncreaseAmount}**.`;
   }
 
   if (lower.includes('largest') || lower.includes('biggest') || lower.includes('max expense')) {
     if (!liveContext.largestExpense) {
       return `No expense transactions recorded yet.`;
     }
-    return `Your largest single expense on record is **${liveContext.largestExpense.description}** for **$${liveContext.largestExpense.amount}** in the **${liveContext.largestExpense.category}** category on ${liveContext.largestExpense.date}.`;
+    return `Your largest single expense on record is **${liveContext.largestExpense.description}** for **₹${liveContext.largestExpense.amount}** in the **${liveContext.largestExpense.category}** category on ${liveContext.largestExpense.date}.`;
   }
 
   if (lower.includes('compare') || lower.includes('last month')) {
     const changeSymbol = liveContext.expenseDiff >= 0 ? '+' : '-';
-    return `### Monthly Comparison 📊\n- **This Month Expense**: $${liveContext.thisMonthExpense}\n- **Last Month Expense**: $${liveContext.lastMonthExpense}\n- **Expense Difference**: ${changeSymbol}$${Math.abs(liveContext.expenseDiff)} (${liveContext.expenseDiffPercent}%)\n- **This Month Income**: $${liveContext.thisMonthIncome} (vs $${liveContext.lastMonthIncome} last month)`;
+    return `### Monthly Comparison 📊\n- **This Month Expense**: ₹${liveContext.thisMonthExpense}\n- **Last Month Expense**: ₹${liveContext.lastMonthExpense}\n- **Expense Difference**: ${changeSymbol}₹${Math.abs(liveContext.expenseDiff)} (${liveContext.expenseDiffPercent}%)\n- **This Month Income**: ₹${liveContext.thisMonthIncome} (vs ₹${liveContext.lastMonthIncome} last month)`;
   }
 
   if (lower.includes('save more') || lower.includes('suggestion') || lower.includes('advice') || lower.includes('tips')) {
-    return `### Money-Saving Suggestions 💡\n1. **Optimize ${liveContext.highestCategory}**: Reduce spending in your top category ($${liveContext.highestCategoryAmount}) by 10-15%.\n2. **Daily Spending Target**: Keep daily expenses under **$${Math.round(liveContext.averageDailySpending * 0.8)}** (current average is $${liveContext.averageDailySpending}/day).\n3. **Automate 20% Savings**: Reserve 20% of income ($${Math.round(liveContext.thisMonthIncome * 0.2)}) for emergency savings.`;
+    return `### Money-Saving Suggestions 💡\n1. **Optimize ${liveContext.highestCategory}**: Reduce spending in your top category (₹${liveContext.highestCategoryAmount}) by 10-15%.\n2. **Daily Spending Target**: Keep daily expenses under **₹${Math.round(liveContext.averageDailySpending * 0.8)}** (current average is ₹${liveContext.averageDailySpending}/day).\n3. **Automate 20% Savings**: Reserve 20% of income (₹${Math.round(liveContext.thisMonthIncome * 0.2)}) for emergency savings.`;
   }
 
   if (lower.includes('spent') || lower.includes('spend')) {
-    return `You have spent **$${liveContext.thisMonthExpense}** this month across **${liveContext.thisMonthTransactionCount} transactions**. Your total income received is **$${liveContext.thisMonthIncome}**, giving you a net balance of **$${liveContext.thisMonthNetBalance}**.`;
+    return `You have spent **₹${liveContext.thisMonthExpense}** this month across **${liveContext.thisMonthTransactionCount} transactions**. Your total income received is **₹${liveContext.thisMonthIncome}**, giving you a net balance of **₹${liveContext.thisMonthNetBalance}**.`;
   }
 
-  return `Based on your live records, you have spent **$${liveContext.thisMonthExpense}** this month with **${liveContext.highestCategory}** as your top category ($${liveContext.highestCategoryAmount}). Your net savings is **$${liveContext.netSavings}**. How else can I assist you with your finances?`;
+  return `Based on your live records, you have spent **₹${liveContext.thisMonthExpense}** this month with **${liveContext.highestCategory}** as your top category (₹${liveContext.highestCategoryAmount}). Your net savings is **₹${liveContext.netSavings}**. How else can I assist you with your finances?`;
 };
