@@ -48,6 +48,39 @@ const getOpenRouterClient = () => {
  * 1. Parse Natural Language Expense Input
  */
 export const parseNaturalLanguageExpense = async (text) => {
+  // 1. Try Gemini API first (fast & reliable)
+  if (aiClient) {
+    const models = ['gemini-flash-lite-latest', 'gemini-3.8-flash'];
+    const prompt = `You are an AI financial assistant. Parse natural language input for financial transactions. Return ONLY valid JSON in the format:
+{
+  "description": string,
+  "amount": number,
+  "type": "expense" | "income",
+  "category": string (must be one of: ${CATEGORIES.join(', ')}),
+  "date": string (ISO date YYYY-MM-DD)
+}
+
+Input Text: "${text}"`;
+
+    for (const m of models) {
+      try {
+        const response = await aiClient.models.generateContent({
+          model: m,
+          contents: prompt,
+        });
+
+        const content = response.text?.trim();
+        if (content) {
+          const cleaned = content.replace(/```json/g, '').replace(/```/g, '').trim();
+          return JSON.parse(cleaned);
+        }
+      } catch (e) {
+        // try next candidate
+      }
+    }
+  }
+
+  // 2. Try Groq Client
   const groq = getGroqClient();
   if (groq) {
     try {
@@ -75,41 +108,10 @@ export const parseNaturalLanguageExpense = async (text) => {
         const cleaned = content.replace(/```json/g, '').replace(/```/g, '').trim();
         return JSON.parse(cleaned);
       }
-    } catch (e) {
-      console.warn('[AI Service] Groq parse warning:', e.message);
-    }
+    } catch (e) {}
   }
 
-  // Try Gemini API
-  if (aiClient) {
-    try {
-      const prompt = `You are an AI financial assistant. Parse natural language input for financial transactions. Return ONLY valid JSON in the format:
-{
-  "description": string,
-  "amount": number,
-  "type": "expense" | "income",
-  "category": string (must be one of: ${CATEGORIES.join(', ')}),
-  "date": string (ISO date YYYY-MM-DD)
-}
-
-Input Text: "${text}"`;
-
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: prompt,
-      });
-
-      const content = response.text?.trim();
-      if (content) {
-        const cleaned = content.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(cleaned);
-      }
-    } catch (e) {
-      // Fallback
-    }
-  }
-
-  // Rule-Based Fallback Parser
+  // 3. Rule-Based Fallback Parser
   const amountMatch = text.match(/(?:[\$₹€£]|\b)(\d+(?:\.\d{1,2})?)/);
   const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
   const lower = text.toLowerCase();
@@ -148,6 +150,24 @@ Input Text: "${text}"`;
  * 2. Automatic Categorisation
  */
 export const categorizeTransaction = async (description) => {
+  // 1. Try Gemini API first
+  if (aiClient) {
+    const models = ['gemini-flash-lite-latest', 'gemini-3.8-flash'];
+    for (const m of models) {
+      try {
+        const response = await aiClient.models.generateContent({
+          model: m,
+          contents: `Categorize the financial transaction into one of these categories: ${CATEGORIES.join(', ')}. Return ONLY the category name.\nTransaction: "${description}"`,
+        });
+        const cat = response.text?.trim();
+        if (cat && CATEGORIES.includes(cat)) {
+          return cat;
+        }
+      } catch (e) {}
+    }
+  }
+
+  // 2. Try Groq
   const groq = getGroqClient();
   if (groq) {
     try {
@@ -170,10 +190,11 @@ export const categorizeTransaction = async (description) => {
     } catch (e) {}
   }
 
+  // 3. Fallback Keyword Matcher
   const lower = description.toLowerCase();
-  if (lower.includes('food') || lower.includes('pizza') || lower.includes('coffee')) return 'Dining Out';
-  if (lower.includes('grocery') || lower.includes('mart')) return 'Groceries';
-  if (lower.includes('salary')) return 'Salary';
+  if (lower.includes('food') || lower.includes('pizza') || lower.includes('coffee') || lower.includes('dining')) return 'Dining Out';
+  if (lower.includes('grocery') || lower.includes('mart') || lower.includes('supermarket')) return 'Groceries';
+  if (lower.includes('salary') || lower.includes('paycheck')) return 'Salary';
   return 'Other';
 };
 
@@ -187,6 +208,23 @@ export const generateMonthlyInsights = async (summaryData) => {
 
   const prompt = `You are an expert financial advisor. Provide 3 short, actionable, personalized financial insights based on the provided spending data:\n${JSON.stringify(summaryData)}`;
 
+  // 1. Try Gemini API
+  if (aiClient) {
+    const models = ['gemini-flash-lite-latest', 'gemini-3.8-flash'];
+    for (const m of models) {
+      try {
+        const response = await aiClient.models.generateContent({
+          model: m,
+          contents: prompt,
+        });
+        if (response && response.text) {
+          return response.text.trim();
+        }
+      } catch (geminiError) {}
+    }
+  }
+
+  // 2. Try Groq
   const groq = getGroqClient();
   if (groq) {
     try {
@@ -206,62 +244,221 @@ export const generateMonthlyInsights = async (summaryData) => {
     } catch (e) {}
   }
 
-  if (aiClient) {
-    try {
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: prompt,
-      });
-      if (response && response.text) {
-        return response.text.trim();
-      }
-    } catch (geminiError) {
-      const isQuota = geminiError.message && geminiError.message.includes('429');
-      console.warn(`[AI Service] ${isQuota ? 'Gemini API free quota limit reached, seamlessly using local engine.' : `Gemini API warning: ${geminiError.message.substring(0, 80)}`}`);
-    }
+  return `### Monthly AI Financial Summary\n- **Spending Trend**: Your highest expense category is **${summaryData.highestCategory}** (₹${summaryData.highestCategoryAmount}).\n- **Budget Health**: You spent ₹${summaryData.thisMonthExpense} this month out of ₹${summaryData.thisMonthIncome} in income.\n- **Net Savings**: Your current net balance is **₹${summaryData.netSavings}** with a savings rate of **${summaryData.savingsRate}**.`;
+};
+
+/**
+ * High-precision deterministic formatted response engine (100% database grounded & zero hallucination)
+ */
+export const generateDeterministicResponse = (intentInfo = {}, financialData = {}) => {
+  if (!financialData || financialData.hasTransactions === false) {
+    return "You don't have any transactions logged yet.\n\nAdd your first income or expense to receive AI financial insights.";
   }
 
-  return `### Monthly AI Financial Summary\n- **Spending Trend**: Your highest expense category is **${summaryData.highestCategory}** (₹${summaryData.highestCategoryAmount}).\n- **Budget Health**: You spent ₹${summaryData.thisMonthExpense} this month out of ₹${summaryData.thisMonthIncome} in income.\n- **Net Savings**: Your current net balance is **₹${summaryData.netSavings}** with a savings rate of **${summaryData.savingsRate}**.`;
+  const { intent, category } = intentInfo;
+
+  switch (intent) {
+    case 'CATEGORY_SPENDING': {
+      const cat = category || financialData.category || 'this category';
+      const total = financialData.categoryTotal || 0;
+      const count = financialData.transactionCount || 0;
+      const share = financialData.sharePercentage || 0;
+
+      if (count === 0) {
+        if (financialData.allTimeCategoryCount > 0) {
+          return `You haven't spent anything on **${cat}** this month across your recorded transactions (All-time spent: ₹${financialData.allTimeCategorySpend.toLocaleString('en-IN')} across ${financialData.allTimeCategoryCount} transactions).`;
+        }
+        return `You have not spent anything on **${cat}** this month (0 transactions logged).`;
+      }
+
+      return `You spent **₹${total.toLocaleString('en-IN')}** on **${cat}** this month across **${count} transaction${count > 1 ? 's' : ''}** (${share}% of your total monthly spending).`;
+    }
+
+    case 'CATEGORY_COMPARISON': {
+      const cat = category || financialData.category || 'this category';
+      const total = financialData.categoryTotal || 0;
+      const totalExp = financialData.totalMonthlyExpense || 0;
+      const pct = financialData.sharePercentage || 0;
+
+      return `You spent **₹${total.toLocaleString('en-IN')}** on **${cat}** this month compared to your total monthly spending of **₹${totalExp.toLocaleString('en-IN')}**, which represents **${pct}%** of your total spending.`;
+    }
+
+    case 'HIGHEST_CATEGORY': {
+      const highest = financialData.highestCategory;
+      const amount = financialData.highestCategoryAmount || 0;
+      const count = financialData.highestCategoryCount || 0;
+      const share = financialData.sharePercentage || 0;
+
+      if (!highest || highest === 'None' || amount === 0) {
+        return 'You do not have any expense transactions recorded for this month.';
+      }
+
+      const fallbackNote = financialData.isAllTimeFallback ? ' (based on all-time records)' : '';
+      return `**${highest}** was your highest expense category this month${fallbackNote}, with **₹${amount.toLocaleString('en-IN')}** spent across **${count} transaction${count > 1 ? 's' : ''}** (${share}% of total expenses).`;
+    }
+
+    case 'LARGEST_EXPENSE': {
+      const exp = financialData.largestExpense;
+      if (!exp) {
+        return 'You have not recorded any expense transactions yet.';
+      }
+      return `Your largest expense was **${exp.description}** for **₹${exp.amount.toLocaleString('en-IN')}** in the **${exp.category}** category on ${exp.date}.`;
+    }
+
+    case 'TOTAL_SPENDING': {
+      const total = financialData.totalMonthlyExpense || 0;
+      const count = financialData.transactionCount || 0;
+      return `You have spent **₹${total.toLocaleString('en-IN')}** this month across **${count} transaction${count > 1 ? 's' : ''}**.`;
+    }
+
+    case 'TOTAL_INCOME': {
+      const total = financialData.totalMonthlyIncome || 0;
+      const count = financialData.transactionCount || 0;
+      return `You have received **₹${total.toLocaleString('en-IN')}** in income this month across **${count} transaction${count > 1 ? 's' : ''}** (All-time total income: ₹${(financialData.allTimeTotalIncome || 0).toLocaleString('en-IN')}).`;
+    }
+
+    case 'SAVINGS': {
+      const inc = financialData.totalIncome || 0;
+      const exp = financialData.totalExpense || 0;
+      const savings = financialData.netSavings || 0;
+      const rate = financialData.savingsRate || '0%';
+
+      return `You have saved **₹${savings.toLocaleString('en-IN')}** this month with a savings rate of **${rate}**.\n\n- **Total Income Received**: ₹${inc.toLocaleString('en-IN')}\n- **Total Expenses**: ₹${exp.toLocaleString('en-IN')}\n- **Net Balance**: ₹${savings.toLocaleString('en-IN')}`;
+    }
+
+    case 'RECENT_TRANSACTIONS': {
+      const txs = financialData.transactions || [];
+      if (txs.length === 0) {
+        return "You don't have any recent transactions logged yet.";
+      }
+      const list = txs
+        .map((t) => `- **${t.description}**: ₹${t.amount.toLocaleString('en-IN')} (${t.category}, ${t.type}) on ${t.date}`)
+        .join('\n');
+      return `Here are your recent transactions:\n${list}`;
+    }
+
+    case 'BUDGET_REMAINING': {
+      if (category) {
+        const cat = category;
+        if (!financialData.hasBudget) {
+          return `You haven't set a budget limit for **${cat}** this month yet (Current spending: ₹${(financialData.spent || 0).toLocaleString('en-IN')}). Head over to the **Budgets** tab to create one!`;
+        }
+
+        const limit = financialData.budgetLimit || 0;
+        const spent = financialData.spent || 0;
+        const pct = financialData.spentPercentage || 0;
+
+        if (financialData.isOverBudget) {
+          return `⚠️ You have exceeded your **${cat}** budget by **₹${(financialData.overAmount || 0).toLocaleString('en-IN')}**! You have spent **₹${spent.toLocaleString('en-IN')}** against your budget limit of **₹${limit.toLocaleString('en-IN')}** (${pct}% capacity).`;
+        }
+
+        return `You are within your **${cat}** budget! You have spent **₹${spent.toLocaleString('en-IN')}** out of your **₹${limit.toLocaleString('en-IN')}** limit, leaving **₹${(financialData.remaining || 0).toLocaleString('en-IN')}** remaining (${pct}% utilized).`;
+      }
+
+      if (!financialData.hasBudget || financialData.totalBudgetLimit === 0) {
+        return "You haven't set up any active budget limits for this month yet. Head over to the **Budgets** tab to create monthly category limits!";
+      }
+
+      return `You have **₹${(financialData.remainingBudget || 0).toLocaleString('en-IN')}** remaining in your active monthly budget out of a **₹${(financialData.totalBudgetLimit || 0).toLocaleString('en-IN')}** total limit.\n\n- **Total Budget Limit**: ₹${(financialData.totalBudgetLimit || 0).toLocaleString('en-IN')}\n- **Total Budget Spent**: ₹${(financialData.totalBudgetSpent || 0).toLocaleString('en-IN')}\n- **Remaining Budget**: ₹${(financialData.remainingBudget || 0).toLocaleString('en-IN')}`;
+    }
+
+    case 'MONTH_COMPARISON': {
+      const thisExp = financialData.thisMonthExpense || 0;
+      const lastExp = financialData.lastMonthExpense || 0;
+      const diff = financialData.expenseDiff || 0;
+      const pct = financialData.expenseDiffPercent || 0;
+      const changeSym = diff >= 0 ? '+' : '-';
+
+      return `### Monthly Spending Comparison 📊\n- **This Month Expense**: ₹${thisExp.toLocaleString('en-IN')}\n- **Last Month Expense**: ₹${lastExp.toLocaleString('en-IN')}\n- **Expense Difference**: ${changeSym}₹${Math.abs(diff).toLocaleString('en-IN')} (${pct > 0 ? '+' : ''}${pct}%)\n- **This Month Income**: ₹${(financialData.thisMonthIncome || 0).toLocaleString('en-IN')} (vs ₹${(financialData.lastMonthIncome || 0).toLocaleString('en-IN')} last month)`;
+    }
+
+    case 'SAVING_ADVICE': {
+      if (category) {
+        const cat = category;
+        const total = financialData.categoryTotal || 0;
+        const count = financialData.transactionCount || 0;
+        const share = financialData.sharePercentage || 0;
+        const targetSavings = Math.round(total * 0.15);
+
+        return `### Suggestions to Reduce ${cat} Expenses 💡\n` +
+          `You spent **₹${total.toLocaleString('en-IN')}** on ${cat} this month across **${count} transaction${count > 1 ? 's' : ''}** (${share}% of your total monthly spending).\n\n` +
+          `1. **Target 15% Reduction**: Aim to save **₹${targetSavings.toLocaleString('en-IN')}** by planning purchases in advance and prioritizing essentials.\n` +
+          `2. **Set a Category Budget**: Establish a strict monthly cap for ${cat} in the **Budgets** section to get automated threshold warnings.\n` +
+          `3. **Track Discretionary Items**: Review individual ${cat} receipts to swap branded items for value alternatives and eliminate impulse purchases.`;
+      }
+
+      const topCat = financialData.highestCategory || 'your top category';
+      const topAmt = financialData.highestCategoryAmount || 0;
+      const daily = financialData.averageDailySpending || 0;
+      const inc = financialData.thisMonthIncome || 0;
+
+      return `### Personalized Money-Saving Recommendations 💡\n` +
+        `1. **Optimize ${topCat}**: Your largest spending area is ${topCat} (₹${topAmt.toLocaleString('en-IN')}). Trimming 10-15% can save you **₹${Math.round(topAmt * 0.15).toLocaleString('en-IN')}**.\n` +
+        `2. **Daily Spending Guideline**: Keep your non-essential daily spending under **₹${Math.round(daily * 0.8).toLocaleString('en-IN')}** (current average is ₹${daily.toLocaleString('en-IN')}/day).\n` +
+        `3. **Automate 20% Savings**: Allocate 20% of monthly income (₹${Math.round(inc * 0.2).toLocaleString('en-IN')}) directly to savings before discretionary spending.`;
+    }
+
+    default: {
+      const thisExp = financialData.thisMonthExpense || financialData.totalExpense || 0;
+      const topCat = financialData.highestCategory || 'None';
+      const topAmt = financialData.highestCategoryAmount || 0;
+      const net = financialData.netSavings || 0;
+
+      return `Based on your live records, you have spent **₹${thisExp.toLocaleString('en-IN')}** this month with **${topCat}** as your top category (₹${topAmt.toLocaleString('en-IN')}). Your net savings is **₹${net.toLocaleString('en-IN')}**. How else can I assist you with your finances?`;
+    }
+  }
 };
 
 /**
  * 4. AI Chatbot Assistant Engine
  */
-export const chatWithFinancialAI = async (userMessage, liveContext) => {
-  if (!liveContext || !liveContext.hasTransactions || liveContext.totalTransactionsCount === 0) {
+export const chatWithFinancialAI = async (
+  userMessage,
+  financialData,
+  intentInfo = { intent: 'GENERAL_FINANCIAL_QUERY' }
+) => {
+  if (!financialData || financialData.hasTransactions === false) {
     return `You don't have any transactions yet.\n\nAdd your first income or expense to receive AI insights.`;
   }
 
   const systemPrompt = `You are SpendWise AI, an intelligent personal finance copilot. You have real-time access to the user's authentic financial records from MongoDB below:
 
-AUTHENTIC USER FINANCIAL DATA (IN INDIAN RUPEES ₹ / INR):
-- Has Transactions: ${liveContext.hasTransactions}
-- Total Transactions Count: ${liveContext.totalTransactionsCount}
-- This Month Expense: ₹${liveContext.thisMonthExpense} across ${liveContext.thisMonthTransactionCount} transactions
-- This Month Income: ₹${liveContext.thisMonthIncome}
-- Net Balance This Month: ₹${liveContext.thisMonthNetBalance}
-- All-Time Total Income: ₹${liveContext.totalIncome}
-- All-Time Total Expense: ₹${liveContext.totalExpense}
-- Net Savings: ₹${liveContext.netSavings} (Savings Rate: ${liveContext.savingsRate})
-- Top Expense Category: ${liveContext.highestCategory} (₹${liveContext.highestCategoryAmount})
-- Category Expense Breakdown: ${JSON.stringify(liveContext.categoryBreakdown)}
-- Category Increased Most: ${liveContext.categoryIncreasedMost} (Increased by +₹${liveContext.maxIncreaseAmount})
-- Largest Single Expense: ${liveContext.largestExpense ? `${liveContext.largestExpense.description} (₹${liveContext.largestExpense.amount}) in ${liveContext.largestExpense.category} on ${liveContext.largestExpense.date}` : 'None'}
-- Average Daily Spending This Month: ₹${liveContext.averageDailySpending}
-- Monthly Budget Limit: ₹${liveContext.totalBudgetLimit}
-- Total Budget Spent: ₹${liveContext.totalBudgetSpent}
-- Remaining Budget: ₹${liveContext.remainingBudget}
-- Comparison vs Last Month: Expense change ₹${liveContext.expenseDiff} (${liveContext.expenseDiffPercent > 0 ? '+' : ''}${liveContext.expenseDiffPercent}%), Last month income: ₹${liveContext.lastMonthIncome}, Last month expense: ₹${liveContext.lastMonthExpense}
-- Recent 5 Transactions: ${JSON.stringify(liveContext.recentTransactions)}
+USER QUERY INTENT: ${intentInfo.intent || 'GENERAL_FINANCIAL_QUERY'}
+${intentInfo.category ? `TARGET CATEGORY: ${intentInfo.category}` : ''}
+
+VERIFIED AUTHENTIC FINANCIAL FACTS FROM MONGODB (IN INDIAN RUPEES ₹ / INR):
+${JSON.stringify(financialData, null, 2)}
 
 STRICT RULES:
-1. Always base your answer strictly on the authentic financial data provided above.
-2. Format all monetary values in Indian Rupees (₹ / INR).
-3. Never invent or hallucinate fake numbers or currency symbols.
-4. Answer user questions directly, accurately, and concisely.
-5. Format your output with clear markdown lists or bold headers.`;
+1. Always base your answer strictly on the authentic verified database facts provided above.
+2. Format all monetary values in Indian Rupees with ₹ (e.g. ₹30,000).
+3. NEVER invent, assume, or hallucinate financial numbers.
+4. Answer the user question directly, accurately, and concisely.
+5. If the user asks about a specific category (such as Groceries), answer about that category specifically. Do NOT return the generic total monthly spending.
+6. If the user asks for highest category, largest expense, savings, income, budget, or recent transactions, directly answer with the corresponding database fact.
+7. If data for a category or budget is zero or missing, clearly state that instead of making up a number.
+8. Format your output with clear markdown lists or bold headers.`;
 
-  // 1. Try Groq (Free Llama 3.3 70B)
+  // 1. Try Gemini API (Resilient multi-model fallback)
+  if (aiClient) {
+    const candidateModels = ['gemini-flash-lite-latest', 'gemini-3.8-flash'];
+    for (const m of candidateModels) {
+      try {
+        const response = await aiClient.models.generateContent({
+          model: m,
+          contents: `${systemPrompt}\n\nUser Question: ${userMessage}`,
+        });
+        if (response && response.text) {
+          console.log(`[AI Service] Response generated via Google Gemini (${m})`);
+          return response.text.trim();
+        }
+      } catch (geminiError) {
+        // try next candidate
+      }
+    }
+  }
+
+  // 2. Try Groq (Llama 3.3 70B)
   const groq = getGroqClient();
   if (groq) {
     try {
@@ -271,7 +468,7 @@ STRICT RULES:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
-        temperature: 0.5,
+        temperature: 0.3,
       });
       const text = response.choices[0]?.message?.content?.trim();
       if (text) {
@@ -283,7 +480,7 @@ STRICT RULES:
     }
   }
 
-  // 2. Try OpenRouter (Free Llama 3.2 3B)
+  // 3. Try OpenRouter (Free Llama 3.2 3B)
   const openRouter = getOpenRouterClient();
   if (openRouter) {
     try {
@@ -293,7 +490,7 @@ STRICT RULES:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
-        temperature: 0.5,
+        temperature: 0.3,
       });
       const text = response.choices[0]?.message?.content?.trim();
       if (text) {
@@ -302,23 +499,6 @@ STRICT RULES:
       }
     } catch (e) {
       console.warn('[AI Service] OpenRouter API warning:', e.message);
-    }
-  }
-
-  // 3. Try Gemini API
-  if (aiClient) {
-    try {
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: `${systemPrompt}\n\nUser Question: ${userMessage}`,
-      });
-      if (response && response.text) {
-        console.log('[AI Service] Response generated via Google Gemini 2.0 Flash');
-        return response.text.trim();
-      }
-    } catch (geminiError) {
-      const isQuota = geminiError.message && geminiError.message.includes('429');
-      console.warn(`[AI Service] ${isQuota ? 'Gemini API free quota limit reached, seamlessly using local engine.' : `Gemini API warning: ${geminiError.message.substring(0, 80)}`}`);
     }
   }
 
@@ -331,77 +511,15 @@ STRICT RULES:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
-        temperature: 0.5,
+        temperature: 0.3,
       });
-
-      return response.choices[0]?.message?.content?.trim();
+      const text = response.choices[0]?.message?.content?.trim();
+      if (text) return text;
     }
   } catch (error) {
     // Fallback
   }
 
-  // 5. Smart Live Context Rule-Based Engine (Guaranteed 100% Uptime & Zero Cost)
-  const lower = userMessage.toLowerCase();
-
-  if (lower.includes('spend this month') || lower.includes('spent this month') || (lower.includes('spent') && lower.includes('month'))) {
-    return `You have spent **₹${liveContext.thisMonthExpense}** this month across **${liveContext.thisMonthTransactionCount} transactions**.\n\n- **Total Income Received**: ₹${liveContext.thisMonthIncome}\n- **Net Balance**: ₹${liveContext.thisMonthNetBalance}`;
-  }
-
-  if (lower.includes('income') || lower.includes('received') || lower.includes('earned')) {
-    return `You have received **₹${liveContext.thisMonthIncome}** in income this month.\n\n- **All-Time Total Income**: ₹${liveContext.totalIncome}\n- **Net Savings**: ₹${liveContext.netSavings}`;
-  }
-
-  if (lower.includes('highest') || lower.includes('top category') || lower.includes('highest expense')) {
-    return `Your highest expense category is **${liveContext.highestCategory}**, totaling **₹${liveContext.highestCategoryAmount}**.`;
-  }
-
-  if (lower.includes('recent') || lower.includes('recent transactions') || lower.includes('last transactions')) {
-    if (!liveContext.recentTransactions || liveContext.recentTransactions.length === 0) {
-      return `You don't have any recent transactions logged yet.`;
-    }
-    const txList = liveContext.recentTransactions
-      .map((t) => `- **${t.description}**: ₹${t.amount} (${t.category}, ${t.type}) on ${t.date}`)
-      .join('\n');
-    return `Here are your recent transactions:\n${txList}`;
-  }
-
-  if (lower.includes('saved') || lower.includes('savings') || lower.includes('net savings')) {
-    return `You have saved **₹${liveContext.netSavings}** overall with a savings rate of **${liveContext.savingsRate}**.\n\n- **Total Income**: ₹${liveContext.totalIncome}\n- **Total Expenses**: ₹${liveContext.totalExpense}`;
-  }
-
-  if (lower.includes('budget') || lower.includes('remains')) {
-    if (liveContext.totalBudgetLimit === 0) {
-      return `You haven't set up any active budget limits for this month yet. Head over to the **Budgets** tab to create category limits!`;
-    }
-    return `You have **₹${liveContext.remainingBudget}** remaining in your active monthly budget out of **₹${liveContext.totalBudgetLimit}** total limit.\n\n- **Budget Spent**: ₹${liveContext.totalBudgetSpent}`;
-  }
-
-  if (lower.includes('increased') || lower.includes('increase') || lower.includes('category increased')) {
-    if (liveContext.categoryIncreasedMost === 'None') {
-      return `None of your expense categories showed an increase compared to last month.`;
-    }
-    return `The category that increased the most compared to last month is **${liveContext.categoryIncreasedMost}**, which went up by **+₹${liveContext.maxIncreaseAmount}**.`;
-  }
-
-  if (lower.includes('largest') || lower.includes('biggest') || lower.includes('max expense')) {
-    if (!liveContext.largestExpense) {
-      return `No expense transactions recorded yet.`;
-    }
-    return `Your largest single expense on record is **${liveContext.largestExpense.description}** for **₹${liveContext.largestExpense.amount}** in the **${liveContext.largestExpense.category}** category on ${liveContext.largestExpense.date}.`;
-  }
-
-  if (lower.includes('compare') || lower.includes('last month')) {
-    const changeSymbol = liveContext.expenseDiff >= 0 ? '+' : '-';
-    return `### Monthly Comparison 📊\n- **This Month Expense**: ₹${liveContext.thisMonthExpense}\n- **Last Month Expense**: ₹${liveContext.lastMonthExpense}\n- **Expense Difference**: ${changeSymbol}₹${Math.abs(liveContext.expenseDiff)} (${liveContext.expenseDiffPercent}%)\n- **This Month Income**: ₹${liveContext.thisMonthIncome} (vs ₹${liveContext.lastMonthIncome} last month)`;
-  }
-
-  if (lower.includes('save more') || lower.includes('suggestion') || lower.includes('advice') || lower.includes('tips')) {
-    return `### Money-Saving Suggestions 💡\n1. **Optimize ${liveContext.highestCategory}**: Reduce spending in your top category (₹${liveContext.highestCategoryAmount}) by 10-15%.\n2. **Daily Spending Target**: Keep daily expenses under **₹${Math.round(liveContext.averageDailySpending * 0.8)}** (current average is ₹${liveContext.averageDailySpending}/day).\n3. **Automate 20% Savings**: Reserve 20% of income (₹${Math.round(liveContext.thisMonthIncome * 0.2)}) for emergency savings.`;
-  }
-
-  if (lower.includes('spent') || lower.includes('spend')) {
-    return `You have spent **₹${liveContext.thisMonthExpense}** this month across **${liveContext.thisMonthTransactionCount} transactions**. Your total income received is **₹${liveContext.thisMonthIncome}**, giving you a net balance of **₹${liveContext.thisMonthNetBalance}**.`;
-  }
-
-  return `Based on your live records, you have spent **₹${liveContext.thisMonthExpense}** this month with **${liveContext.highestCategory}** as your top category (₹${liveContext.highestCategoryAmount}). Your net savings is **₹${liveContext.netSavings}**. How else can I assist you with your finances?`;
+  // 5. High-precision deterministic formatted response engine (Guaranteed 100% Uptime, Accuracy & Zero Cost)
+  return generateDeterministicResponse(intentInfo, financialData);
 };

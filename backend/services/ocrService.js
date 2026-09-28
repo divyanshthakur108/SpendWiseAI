@@ -57,7 +57,7 @@ Return ONLY valid JSON in the exact format:
 }`;
 
         const aiRes = await aiClient.models.generateContent({
-          model: 'gemini-2.0-flash',
+          model: 'gemini-3.8-flash',
           contents: [
             {
               inlineData: {
